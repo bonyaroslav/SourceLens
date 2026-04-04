@@ -1,6 +1,6 @@
 <div align="center">
 
-# Nexus Knowledge Workspace
+# Source Lens Knowledge Workspace
 
 **A local-first AI workspace for turning private knowledge into grounded answers, evidence, and reusable insight.**
 
@@ -28,7 +28,7 @@
 
 Most AI tools still feel like generic chat wrapped around vague context.
 
-**Nexus** is designed as a **knowledge workspace**, not just a chatbot:
+**Source Lens** is designed as a **knowledge workspace**, not just a chatbot:
 - bring in a source
 - process and index it locally
 - ask questions against that source
@@ -241,7 +241,7 @@ Import source → Parse text → Split into chunks → Create embeddings → Sto
 
 ```html
 <p align="center">
-  <img src="./docs/demo.gif" alt="Nexus demo" width="920">
+  <img src="./docs/demo.gif" alt="Source Lens demo" width="920">
 </p>
 ```
 
@@ -249,7 +249,7 @@ Import source → Parse text → Split into chunks → Create embeddings → Sto
 
 ## Positioning
 
-**Nexus is a local-first AI knowledge workspace for importing, indexing, and exploring private sources with grounded answers and visible evidence.**
+**Source Lens is a local-first AI knowledge workspace for importing, indexing, and exploring private sources with grounded answers and visible evidence.**
 
 It starts small on purpose, but it is built to grow into something much more powerful than “chat with a file.”
 

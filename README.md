@@ -2,17 +2,23 @@
 
 # Nexus Knowledge Workspace
 
-**A local-first AI workspace for exploring documents, papers, codebases, and imported web sources with grounded answers.**
+**A local-first AI workspace for turning private knowledge into grounded answers, evidence, and reusable insight.**
 
 <p>
-  <img alt="Angular" src="https://img.shields.io/badge/UI-Angular-DD0031?logo=angular&logoColor=white">
-  <img alt="TypeScript" src="https://img.shields.io/badge/Frontend-TypeScript-3178C6?logo=typescript&logoColor=white">
-  <img alt="Python" src="https://img.shields.io/badge/Backend-Python-3776AB?logo=python&logoColor=white">
-  <img alt="Local AI" src="https://img.shields.io/badge/LLM-Gemma%204%20%7C%20Gemini-6C47FF">
-  <img alt="Status" src="https://img.shields.io/badge/Status-MVP%20in%20Progress-0A7EA4">
+  <img alt="Local First" src="https://img.shields.io/badge/Local--First-Private%20by%20Default-111827">
+  <img alt="Runtime" src="https://img.shields.io/badge/Runtime-Ollama-7C3AED">
+  <img alt="Retrieval" src="https://img.shields.io/badge/RAG-Grounded%20Answers-0F766E">
+  <img alt="Evidence" src="https://img.shields.io/badge/UX-Evidence%20Visible-1D4ED8">
+  <img alt="Status" src="https://img.shields.io/badge/Status-MVP%20Building-0A7EA4">
 </p>
 
-**Import knowledge. Index it once. Ask better questions forever.**
+<p>
+  <strong>Import knowledge. Index it once. Ask sharper questions forever.</strong>
+</p>
+
+<p>
+  Built for documents, notes, research, and code-related knowledge that should stay under your control.
+</p>
 
 </div>
 
@@ -20,205 +26,237 @@
 
 ## Why this exists
 
-Most AI demos stop at “chat with a file.”
+Most AI tools still feel like generic chat wrapped around vague context.
 
-**Nexus** is designed as a reusable knowledge workspace:
-- choose a source
-- ingest and index it
-- ask grounded questions
-- switch between **local AI** and hosted models
-- keep the architecture open for enterprise-safe deployments
+**Nexus** is designed as a **knowledge workspace**, not just a chatbot:
+- bring in a source
+- process and index it locally
+- ask questions against that source
+- get answers grounded in retrieved evidence
+- evolve toward a private internal AI assistant without depending on paid external inference
 
-It is built for scenarios where data locality, explainability, and source-aware retrieval matter more than flashy generic chat.
+The goal is simple: make private knowledge feel searchable, explainable, and actually useful.
 
 ---
 
-## What it can do
+## Core experience
 
-- **Source Catalog** — browse indexed knowledge sources with name and description
-- **Grounded Q&A** — ask questions against a selected source
-- **RAG Retrieval** — retrieve relevant chunks before answer generation
-- **Pluggable Models** — run with **local Gemma 4** or a hosted API such as Gemini
-- **Import Pipeline** — ingest local files, folders, URLs, and later GitHub repositories
-- **Enterprise-Friendly Direction** — designed for local-first or controlled deployments
+### 1. Source-aware exploration
+Choose a knowledge source and ask focused questions against it instead of throwing everything into one giant context window.
+
+### 2. Grounded answers
+Retrieve the most relevant chunks first, then generate the answer from evidence instead of free-form guessing.
+
+### 3. Evidence you can inspect
+Surface the supporting snippets so the user can validate why the answer was produced.
+
+### 4. Local-first runtime
+Run the core AI workflow locally through **Ollama**, with local indexing and retrieval as the default posture.
+
+### 5. Enterprise-friendly direction
+Keep the architecture compatible with controlled environments where external APIs may be restricted or forbidden.
+
+---
+
+## What makes it feel powerful
+
+<table>
+  <tr>
+    <td valign="top" width="50%">
+      <h3>Grounded Question Answering</h3>
+      <p>Ask questions about one selected source and get answers built from retrieved evidence, not generic model improvisation.</p>
+    </td>
+    <td valign="top" width="50%">
+      <h3>Evidence Panel</h3>
+      <p>See the exact snippets behind the answer to improve trust, debugging, and source awareness.</p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top" width="50%">
+      <h3>Reusable Knowledge Index</h3>
+      <p>Import once, query many times. Turn raw files and notes into a persistent private retrieval layer.</p>
+    </td>
+    <td valign="top" width="50%">
+      <h3>Local AI by Default</h3>
+      <p>Keep inference and retrieval close to the data when privacy, cost control, or enterprise constraints matter.</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
 ## Demo scenarios
 
-### 1. Project Knowledge Assistant
-Import project docs, architecture notes, specs, and meeting records.  
-Ask:
-- “What are the main risks in this project?”
-- “Which decisions were made about authentication?”
-- “Summarize open questions from the design notes.”
+### Project Knowledge Assistant
+Import project notes, architecture docs, exported tickets, and technical writeups.
 
-### 2. Research Paper Explorer
-Import a set of papers or reports.  
-Ask:
-- “What are the main claims across these papers?”
-- “Compare methods and limitations.”
-- “Extract future work ideas.”
+Ask things like:
+- What are the main risks in this project?
+- Which decisions were made about authentication?
+- What unresolved questions still exist?
 
-### 3. Codebase Companion
-Import a repository snapshot or prepared code docs.  
-Ask:
-- “Where is auth handled?”
-- “What modules are coupled to billing?”
-- “Explain the architecture of this service.”
+### Research Navigator
+Import papers, articles, or structured notes.
 
----
+Ask things like:
+- What are the major claims across these sources?
+- Compare methods and limitations.
+- Which findings are weakly supported?
 
-## Why it feels different
+### Codebase Companion
+Import code-adjacent documentation, exported repo summaries, or design notes.
 
-- **Local-first by design**
-- **Swappable model backend**
-- **One UI for many source types**
-- **Focused on grounded answers, not generic chatbot theater**
-- **Built to evolve from MVP to enterprise-style internal tool**
+Ask things like:
+- Where is authentication handled?
+- What modules look tightly coupled?
+- What operational risks are implied by the current design?
 
 ---
 
 ## MVP scope
 
-### Included now
-- Source list
-- Source details
-- Chat against one selected source
-- File/folder import
-- Basic URL import
-- Embedding + retrieval pipeline
-- Model provider abstraction
-- Support for local and hosted inference
+### In progress now
+- source catalog
+- local file and folder import
+- text parsing and chunking
+- embedding-based retrieval
+- grounded answer generation
+- answer + evidence snippets
+- local runtime via Ollama
 
-### Planned next
-- GitHub repo importer
-- crawler profiles by source type
-- scheduled re-indexing
-- hybrid retrieval
-- answer citations/snippet viewer
-- source sync history
-- cross-source querying
+### Intentionally not overbuilt yet
+- deep crawling
+- broad connector ecosystem
+- autonomous agents
+- multi-source orchestration
+- complex ranking pipelines
+
+The MVP is a **sharp vertical slice**: one selected source, one clean retrieval flow, one clear grounded-answer experience.
 
 ---
 
 ## Architecture at a glance
 
 ```text
-Angular UI
-   ↓
-API Backend
-   ├─ Importers (files / folders / URL / GitHub)
-   ├─ Processing (parse → chunk → embed)
-   ├─ Index storage
-   ├─ Retrieval layer
-   └─ LLM adapters (Gemma 4 local / Gemini API)
-````
+UI
+ ↓
+Python API
+ ├─ source catalog
+ ├─ local import pipeline
+ │   ├─ parse
+ │   ├─ chunk
+ │   ├─ embed via Ollama
+ │   └─ store vectors + metadata
+ ├─ retrieval service
+ └─ answer service
+     ├─ embed the question
+     ├─ retrieve top chunks
+     └─ generate grounded answer via Ollama
+```
 
 ---
 
-## Quick start
+## Current product decisions
 
-```bash
-# 1. clone the repo
-git clone https://github.com/yourname/nexus-knowledge-workspace.git
+### Locked for MVP
+- **Backend:** Python
+- **Local model runtime:** Ollama
+- **Retrieval store:** local vector storage
+- **Workflow:** import → chunk → embed → retrieve → answer
+- **Primary UX:** source selection, question input, answer, evidence
 
-# 2. start backend
-cd backend
-# install deps, configure model provider, run API
+### Why this stack
+Because it gets to a real end-to-end prototype fast, stays local-first, and keeps the path open for more controlled enterprise deployment later.
 
-# 3. start frontend
-cd ../frontend
-npm install
-npm start
-```
+---
 
-Then:
+## Potential AI capabilities
 
-1. add a source
-2. import files or a URL
-3. wait for indexing
-4. open the source
-5. start asking questions
+These are the most exciting directions that fit the product and can be layered in without breaking the MVP direction.
+
+### Grounded Answer Mode+
+Stricter answer behavior when evidence is weak, missing, or contradictory.
+
+### Evidence / Snippet Panel
+A richer view of retrieved chunks, supporting traceability and answer inspection.
+
+### Source Memory Cards
+Save important findings, pinned snippets, risks, or open questions for each source.
+
+### Multi-Perspective Review
+Analyze the same source from different lenses such as architecture, security, maintainability, or operations.
+
+### Import-Time Secret Scan
+Detect suspicious keys or tokens when ingesting repository-like content.
+
+### Source Map / Relationship View
+Visualize clusters, connections, or structural relationships inside a source collection.
+
+These features are not all in the MVP, but they are highly aligned with the product direction and give the project its longer-term wow factor.
+
+---
+
+## Why it stands out
+
+- **Private by design** instead of privacy as an afterthought
+- **Grounded answers** instead of generic chatbot theater
+- **Evidence-first UX** instead of “just trust the model”
+- **Reusable retrieval layer** instead of one-shot document chat
+- **A path toward enterprise-safe AI workflows** without making the MVP feel heavy
 
 ---
 
 ## Example workflow
 
 ```text
-Import source → Process content → Build embeddings → Search relevant chunks → Generate grounded answer
+Import source → Parse text → Split into chunks → Create embeddings → Store vectors → Ask question → Retrieve evidence → Generate grounded answer
 ```
 
 ---
 
-## Vision
+## Roadmap direction
 
-This project starts as a concise, local-first RAG workspace.
-
-It is intentionally designed to grow into:
-
-* a private internal knowledge assistant
-* a research navigator
-* a code exploration tool
-* a foundation for enterprise-safe AI workflows
-
----
-
-## Tech direction
-
-* **Frontend:** Angular + TypeScript
-* **Backend:** Python API
-* **Local models:** Gemma 4
-* **Hosted fallback:** Gemini API
-* **Retrieval:** embedding-based search over preprocessed source chunks
+- [ ] source catalog MVP
+- [ ] local file/folder import
+- [ ] grounded source chat
+- [ ] evidence panel
+- [ ] retrieval tuning
+- [ ] source memory cards
+- [ ] multi-perspective review
+- [ ] GitHub/repository-oriented import path
+- [ ] import-time secret scan
+- [ ] source relationship view
 
 ---
 
-## Project status
+## Screenshots / demo
 
-This repository is currently focused on shipping a sharp MVP fast:
-
-* one clean import flow
-* one clean chat flow
-* one clean retrieval flow
-* extensibility without overengineering
-
----
-
-## Screenshots
-
-> Add one GIF or screenshot here as soon as the first vertical slice works.
-> Best first screenshot: **Source Catalog + Source Chat + Retrieved Snippets**.
+> Add the first real screenshot or GIF as soon as the vertical slice works.
+>
+> Best first demo: **source list + selected source + grounded answer + evidence snippets**.
 
 ```html
 <p align="center">
-  <img src="./docs/demo.gif" alt="Nexus demo" width="900">
+  <img src="./docs/demo.gif" alt="Nexus demo" width="920">
 </p>
 ```
 
 ---
 
-## Roadmap
+## Positioning
 
-* [ ] MVP source catalog
-* [ ] file/folder import
-* [ ] URL import
-* [ ] source chat
-* [ ] local Gemma 4 adapter
-* [ ] Gemini adapter
-* [ ] snippet/citation panel
-* [ ] GitHub importer
-* [ ] scheduled sync
-* [ ] retrieval evaluation page
+**Nexus is a local-first AI knowledge workspace for importing, indexing, and exploring private sources with grounded answers and visible evidence.**
+
+It starts small on purpose, but it is built to grow into something much more powerful than “chat with a file.”
 
 ---
 
 ## Who this is for
 
-* engineers exploring local AI
-* teams with sensitive internal knowledge
-* developers who want a reusable RAG foundation
-* anyone who wants to query their own curated information, not a public web index
+- engineers exploring practical local AI
+- teams working with sensitive internal knowledge
+- builders who want a reusable RAG foundation
+- people who want private knowledge to become searchable, explainable, and reusable
 
 ---
 

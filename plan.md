@@ -376,58 +376,250 @@ This does **not** mean enterprise deployment should be implemented now.
 
 ---
 
-## Immediate implementation priorities
+## First vertical slice spec
 
-Build in this order:
+The first slice should be **backend first** and prove one real workflow:
 
-1. **backend skeleton**
-  - FastAPI app
-  - health endpoint
-  - config
-  - metadata repository abstraction
-2. **Ollama integration**
-  - verify local embed call works
-  - verify local chat call works
-3. **SQLite metadata integration**
-  - define source and import-job tables
-  - implement repository interfaces
-4. **Qdrant local integration**
-  - create collection
-  - insert test vectors
-  - run similarity search
-5. **file ingestion vertical slice**
-  - import one text or html file
-  - create import job
-  - snapshot source
-  - chunk it
-  - embed chunks
-  - store chunks
-6. **ask endpoint**
-  - accept source id + question
-  - retrieve top chunks
-  - generate grounded answer
-  - return snippets
-7. **minimal UI**
-  - source list
-  - source detail page
-  - ask question
-  - show answer + snippets
+1. start the backend
+2. import one local file by path
+3. create an import job
+4. parse, chunk, embed, and store it
+5. ask one question against that source
+6. return an answer plus evidence snippets
 
-Only after this works should more features be added.
+This is the smallest slice that proves the architecture is real. It also forces deterministic commands early and keeps UI work out of the critical path.
 
----
+### First-slice boundaries
 
-## Very short setup path
+Keep the first slice narrow:
 
-1. install Python environment
-2. install Ollama
-3. pull one embedding model and one chat model
-4. install backend dependencies
-5. add SQLite metadata layer
-6. add Qdrant local dependency
-7. create one import script for a text or html file
-8. create one ask script / endpoint
-9. test the full flow on one document
+- backend only
+- import one local file at a time
+- import starts from a local filesystem path, not browser upload
+- import is job-based and async from day 1
+- query remains synchronous
+- SQLite stores source and import-job metadata
+- Qdrant stores chunk vectors and retrieval payload
+- design must stay compatible with later folder import and UI work
+
+Tradeoff:
+
+- this moves fastest for backend proof
+- folder import, browser upload, and UI are deferred even though they remain part of the MVP
+
+### Phase 1: deterministic scaffold
+
+Goal:
+
+- remove setup guesswork before feature work begins
+
+Build:
+
+- Python project scaffold
+- FastAPI app
+- config loading
+- health endpoint
+- deterministic commands: `setup`, `dev`, `test`, `lint`, `typecheck`, `eval`
+
+Why this order is good:
+
+- it creates one stable way to run and verify the project
+- it matches the rule to add deterministic scripts before serious prompting
+
+Tradeoff:
+
+- slightly more setup on day one
+- less rework and less confusion after that
+
+Acceptance checks:
+
+- `setup` installs and prepares the backend locally
+- `dev` starts the API
+- `GET /health` returns success
+- `test`, `lint`, and `typecheck` run even if they are minimal at first
+
+### Phase 2: local dependency proof
+
+Goal:
+
+- prove the hard local dependencies before business logic hides failures
+
+Build:
+
+- Ollama client for embeddings
+- Ollama client for chat
+- SQLite connection and repository abstraction
+- Qdrant local connection
+- smoke checks for each dependency
+
+Why this order is good:
+
+- failures are easier to isolate before the import pipeline exists
+- the core stack is proven early instead of assumed
+
+Tradeoff:
+
+- more plumbing before the first feature appears
+
+Acceptance checks:
+
+- one embedding request succeeds against Ollama
+- one chat request succeeds against Ollama
+- one SQLite write and read succeeds through the repository layer
+- one Qdrant insert and similarity query succeeds
+
+### Phase 3: import pipeline v1
+
+Goal:
+
+- prove that one local file can become one queryable source
+
+Build:
+
+- `POST /sources/import` that accepts a local file path
+- import job creation with status tracking
+- source record creation
+- source snapshot into managed workspace storage
+- parser selection by file type
+- text normalization and chunking
+- embedding generation
+- Qdrant upsert with source-scoped payload
+- import job completion or failure state
+
+Supported file types in this phase:
+
+- `.txt`
+- `.md`
+- `.pdf`
+- `.html`
+- `.htm`
+
+Why this order is good:
+
+- it proves the local-first ingestion model in its simplest useful form
+- supporting the MVP file types now avoids immediately reworking the parser surface
+
+Tradeoff:
+
+- file upload and folder import are deferred
+- parser support adds work to the first slice
+
+Acceptance checks:
+
+- importing a valid local file creates a source record and a completed import job
+- importing `.txt`, `.md`, `.pdf`, and `.html` or `.htm` each reaches parsed text and stored chunks
+- a bad path fails cleanly and records an error
+- source content is snapshotted before parsing
+- chunks can be retrieved from Qdrant by source filter
+
+### Phase 4: ask flow v1
+
+Goal:
+
+- complete the first real user value: ask about one source and see the evidence
+
+Build:
+
+- `GET /sources`
+- `GET /sources/{source_id}`
+- `POST /sources/{source_id}/ask`
+- query embedding
+- top-k retrieval filtered to one source
+- grounded answer prompt
+- response with answer, grounding status, and evidence snippets
+
+Why this order is good:
+
+- it closes the loop on the core product promise
+- it keeps prompting and retrieval simple until the base flow works
+
+Tradeoff:
+
+- prompt design stays basic
+- no multi-source or advanced retrieval yet
+
+Acceptance checks:
+
+- listing sources returns imported sources with basic metadata
+- asking a question against an imported source returns an answer and snippets
+- asking about a missing source returns a clear error
+- weak retrieval produces a cautious answer or low-confidence grounding status
+- retrieved evidence comes only from the selected source
+
+### Phase 5: evaluation baseline
+
+Goal:
+
+- add a small but real quality loop as soon as the first slice works
+
+Build:
+
+- a small `eval` command for the first slice
+- one golden-path sample source
+- one expected-answer or expected-evidence smoke evaluation
+- one weak-evidence evaluation
+
+Why this order is good:
+
+- it starts eval-driven development early without overbuilding a framework
+
+Tradeoff:
+
+- early evals will be simple and somewhat brittle
+- they still create a real regression check
+
+Acceptance checks:
+
+- `eval` runs on a known sample source
+- one check covers the happy path
+- one check covers weak or missing evidence behavior
+
+### Minimum first-slice interfaces
+
+Commands to create in the first implementation:
+
+- `setup`
+- `dev`
+- `test`
+- `lint`
+- `typecheck`
+- `eval`
+
+Minimum backend API:
+
+- `GET /health`
+- `POST /sources/import`
+  - input: local file path
+  - output: source id, import job id, initial status
+- `GET /sources`
+- `GET /sources/{source_id}`
+- `POST /sources/{source_id}/ask`
+  - input: question
+  - output: answer, grounding status, evidence snippets
+
+Storage boundary for this slice:
+
+- SQLite stores source metadata and import-job metadata
+- Qdrant stores chunk vectors plus retrieval payload needed for answering
+- domain services must use repositories or adapters, not raw SQLite details
+
+Tradeoff:
+
+- chunk payload lives with vectors in the first slice instead of being fully normalized in SQLite
+
+### Mandatory first-slice test scenarios
+
+- backend boots from deterministic commands
+- health endpoint works
+- Ollama embed and chat calls both work
+- SQLite and Qdrant are both proven independently
+- import succeeds for each supported file type
+- invalid import path fails clearly
+- imported source appears in source listing
+- ask flow returns answer plus evidence
+- ask flow stays scoped to one selected source
+- weak-evidence case returns cautious output
+- `eval` runs at least one happy-path and one weak-evidence check
 
 ---
 

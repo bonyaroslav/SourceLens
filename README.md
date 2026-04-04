@@ -118,6 +118,7 @@ Ask things like:
 ### In progress now
 - source catalog
 - local file and folder import
+- initial support for txt / md / pdf / html
 - text parsing and chunking
 - embedding-based retrieval
 - grounded answer generation
@@ -143,6 +144,7 @@ UI
 Python API
  ├─ source catalog
  ├─ local import pipeline
+ │   ├─ snapshot source
  │   ├─ parse
  │   ├─ chunk
  │   ├─ embed via Ollama
@@ -161,7 +163,8 @@ Python API
 ### Locked for MVP
 - **Backend:** Python
 - **Local model runtime:** Ollama
-- **Retrieval store:** local vector storage
+- **Vector store:** Qdrant local mode
+- **Metadata store:** SQLite via a swappable repository / adapter layer
 - **Workflow:** import → chunk → embed → retrieve → answer
 - **Primary UX:** source selection, question input, answer, evidence
 
@@ -178,7 +181,7 @@ These are the most exciting directions that fit the product and can be layered i
 Stricter answer behavior when evidence is weak, missing, or contradictory.
 
 ### Evidence / Snippet Panel
-A richer view of retrieved chunks, supporting traceability and answer inspection.
+A richer view of retrieved chunks, extending the baseline MVP evidence display.
 
 ### Source Memory Cards
 Save important findings, pinned snippets, risks, or open questions for each source.
@@ -220,6 +223,7 @@ Import source → Parse text → Split into chunks → Create embeddings → Sto
 - [ ] local file/folder import
 - [ ] grounded source chat
 - [ ] evidence panel
+- [ ] stricter grounding mode
 - [ ] retrieval tuning
 - [ ] source memory cards
 - [ ] multi-perspective review

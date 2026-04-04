@@ -19,7 +19,7 @@ This document does **not** finalize scope or architecture.
 ## 1. Grounded Answer Mode
 
 ### Summary
-Add a mode where the system is expected to answer only from retrieved source evidence.
+Extend the MVP grounded-answer baseline with a stricter mode where the system is expected to answer only from retrieved source evidence.
 
 ### Functional value
 - reduces unsupported synthesis
@@ -27,9 +27,9 @@ Add a mode where the system is expected to answer only from retrieved source evi
 - is suitable for document, research, and codebase exploration
 
 ### Possible behavior
-- answer only from retrieved chunks
+- enforce stricter answer-only-from-evidence behavior
 - decline or qualify answers when evidence is insufficient
-- expose the evidence used for the answer
+- make grounding status more explicit
 
 ### Small use case
 A user asks for the authentication approach used in a project.  
@@ -37,6 +37,10 @@ The system answers using retrieved design notes and shows the supporting excerpt
 
 ### Implementation note
 Complexity: **small to medium**
+
+### MVP boundary note
+Baseline grounded answers and evidence exposure are already part of MVP.
+This feature refers only to stricter grounding behavior beyond the baseline contract.
 
 ### Related references
 - Galileo Agent Control (governance / guardrails for AI agents)  
@@ -49,7 +53,7 @@ Complexity: **small to medium**
 ## 2. Evidence / Snippet Panel
 
 ### Summary
-Add a dedicated panel that shows the retrieved snippets or chunks used in the answer.
+Extend the MVP evidence display into a richer dedicated panel that shows the retrieved snippets or chunks used in the answer.
 
 ### Functional value
 - improves traceability of responses
@@ -57,9 +61,9 @@ Add a dedicated panel that shows the retrieved snippets or chunks used in the an
 - makes the retrieval layer visible to the user
 
 ### Possible behavior
-- show top retrieved chunks
+- show top retrieved chunks with clearer structure
 - allow expanding the original source segment
-- optionally show retrieval score or rank later
+- optionally show retrieval score, rank, or chunk metadata later
 
 ### Small use case
 For a science paper collection, the user asks for limitations of a method.  
@@ -67,6 +71,10 @@ The answer is accompanied by the exact relevant excerpts from the papers.
 
 ### Implementation note
 Complexity: **small**
+
+### MVP boundary note
+Showing evidence snippets is already part of MVP.
+This feature refers to a richer evidence experience, not the initial baseline display.
 
 ### Related references
 This feature is closely related to grounded-answer behavior and source-aware retrieval.  
@@ -233,11 +241,11 @@ Complexity: **medium**
 
 At this stage, the most straightforward feature candidates to evaluate after MVP are:
 
-1. Grounded Answer Mode
-2. Evidence / Snippet Panel
-3. Import-time Secret Scan
-4. Source Memory Cards
-5. Acceptance Criteria / Output Checklist
+1. Stricter Grounded Answer Mode
+2. Richer Evidence / Snippet Panel
+3. Source Memory Cards
+4. Acceptance Criteria / Output Checklist
+5. Import-time Secret Scan
 
 These features are relatively contained and can fit the current project direction without requiring a full autonomous-agent architecture.
 
@@ -261,3 +269,4 @@ These may be reconsidered later if the project scope changes.
 - This document is a candidate feature list, not a final roadmap.
 - External references are included as context and inspiration, not as mandatory implementation models.
 - Final feature selection should follow after MVP architecture and scope decisions are clarified.
+- MVP ingestion scope currently includes `.txt`, `.md`, `.pdf`, `.html`, and `.htm`.

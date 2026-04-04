@@ -173,6 +173,27 @@ Because it gets to a real end-to-end prototype fast, stays local-first, and keep
 
 ---
 
+## Local backend scaffold
+
+The repo now includes a backend-only scaffold for the first implementation slice.
+
+Windows-first commands from the repo root:
+
+- `.\tools\setup.ps1`
+- `.\tools\dev.ps1`
+- `.\tools\test.ps1`
+- `.\tools\lint.ps1`
+- `.\tools\typecheck.ps1`
+- `.\tools\eval.ps1`
+
+Current runtime surface:
+
+- `GET /health`
+
+`setup.ps1` bootstraps a repo-local helper environment for `uv` under `.tools\bootstrap` and then syncs the backend project.
+
+---
+
 ## Potential AI capabilities
 
 These are the most exciting directions that fit the product and can be layered in without breaking the MVP direction.

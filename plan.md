@@ -474,6 +474,10 @@ Goal:
 
 - prove the hard local dependencies before business logic hides failures
 
+Execution note:
+
+- use `phase-2-implementation-plan.md` as the repo-specific checklist for this phase
+
 Build:
 
 - Ollama embedding client using the local HTTP API

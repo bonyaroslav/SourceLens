@@ -8,10 +8,12 @@ Current scope:
 - local config loading
 - `GET /health`
 - deterministic PowerShell commands from the repo root
+- repo-specific Phase 2 implementation plan in `..\phase-2-implementation-plan.md`
 
 Windows-first commands from the repo root:
 
 - `.\tools\setup.ps1`
+- `.\tools\bootstrap-models.ps1`
 - `.\tools\dev.ps1`
 - `.\tools\test.ps1`
 - `.\tools\lint.ps1`
@@ -20,3 +22,4 @@ Windows-first commands from the repo root:
 
 `setup.ps1` bootstraps a repo-local helper environment for `uv` under `.tools\bootstrap` and then syncs the backend project dependencies.
 
+`bootstrap-models.ps1` pulls the pinned Phase 2 Ollama chat and embedding models through the local Ollama HTTP API.

@@ -89,14 +89,27 @@ Use:
 
 - a local embedding model served via Ollama
 
-Working default:
+Phase 2 bootstrap default:
 
-- start with **Qwen3 Embedding** via Ollama if practical in local setup
+- use **`qwen3-embedding:0.6b`** for the local dependency-proof phase
+
+Why this default is locked for Phase 2:
+
+- keeps the first local proof lightweight and faster to pull
+- reduces RAM / VRAM pressure during early integration work
+- is good enough to validate the embedding -> vector-store path
+- stays deterministic when pinned to an exact tag
+
+Reasonable later alternative:
+
+- revisit a stronger embedding model such as **`qwen3-embedding:4b`** after Phase 2 if evals show the MVP needs better retrieval quality
 
 Important principle:
 
 - embedding dimension follows the selected model
 - do not hardcode vector dimensionality as an architectural decision
+- pin exact model tags instead of relying on `latest`
+- treat the Phase 2 embedding model as a bootstrap default, not a permanent MVP quality lock
 
 ### Answer generation
 
@@ -104,10 +117,27 @@ Use:
 
 - a separate local chat model via Ollama
 
+Phase 2 bootstrap default:
+
+- use **`qwen3:4b`** for the local dependency-proof phase
+
+Why this default is locked for Phase 2:
+
+- keeps setup cost and first-run latency lower than larger models
+- is stronger than very small chat models for deterministic smoke prompts
+- is sufficient to prove the local chat integration before product-quality tuning
+- stays deterministic when pinned to an exact tag
+
+Reasonable later alternative:
+
+- revisit a stronger chat model such as **`qwen3:8b`** after Phase 2 if local hardware and evals support a quality-first upgrade
+
 Important principle:
 
 - **embedding model and answer model are separate concerns**
 - do not use one model for every task by default
+- pin exact model tags instead of relying on `latest`
+- treat the Phase 2 chat model as a bootstrap default, not a permanent MVP quality lock
 
 ### Vector storage
 
@@ -446,20 +476,42 @@ Goal:
 
 Build:
 
-- Ollama client for embeddings
-- Ollama client for chat
+- Ollama embedding client using the local HTTP API
+- Ollama chat client using the local HTTP API
+- sync-first adapter interfaces for chat, embeddings, metadata, and vector storage
 - SQLite connection and repository abstraction
-- Qdrant local connection
+- Qdrant local connection with on-disk persistence
+- deterministic model bootstrap command
 - smoke checks for each dependency
+
+Locked Phase 2 decisions:
+
+- use exact pinned model tags, not `latest`
+- bootstrap defaults are `qwen3:4b` for chat and `qwen3-embedding:0.6b` for embeddings
+- these model choices are for dependency proof and may be upgraded intentionally in later phases
+- keep both defaults in the Qwen3 family for Phase 2 simplicity
+- use sync-first adapters behind interfaces; do not overbuild async internals yet
+- store local SQLite and Qdrant data in a repo-local ignored directory
+- use Qdrant local mode, not Docker or Qdrant server mode, as the default path for this phase
+- keep `GET /health` shallow; dependency proof belongs in deterministic commands and evals, not app boot
+
+Implementation notes:
+
+- add config for Ollama base URL, exact chat model, exact embedding model, and repo-local data directory
+- add a dedicated model bootstrap script instead of folding model pulls into `setup`
+- derive vector dimensionality from a real embedding response before creating the Qdrant collection
+- create the Phase 3-aligned metadata schema early enough to prove the real repository path, not a throwaway smoke table
 
 Why this order is good:
 
 - failures are easier to isolate before the import pipeline exists
 - the core stack is proven early instead of assumed
+- the smallest live proof stays reproducible across machines and over time
 
 Tradeoff:
 
 - more plumbing before the first feature appears
+- Phase 2 models optimize for integration reliability, not final answer quality
 
 Acceptance checks:
 
@@ -467,6 +519,8 @@ Acceptance checks:
 - one chat request succeeds against Ollama
 - one SQLite write and read succeeds through the repository layer
 - one Qdrant insert and similarity query succeeds
+- the exact pinned models can be pulled and verified through a deterministic command
+- a collection created from the selected embedding model fails clearly if a later run tries to reuse it with a different dimension
 
 ### Phase 3: import pipeline v1
 
@@ -628,7 +682,7 @@ Tradeoff:
 These remain open, but they should not block MVP start:
 
 - exact chunking strategy
-- exact chat model choice
+- later upgrade from Phase 2 bootstrap models to stronger MVP defaults
 - exact prompt format
 - whether URL import enters MVP or phase 2
 - whether citations are inline or panel-based in UI

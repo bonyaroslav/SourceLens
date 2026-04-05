@@ -9,3 +9,15 @@ class ImportJobRepositoryPort(Protocol):
 
     def get_by_id(self, job_id: str) -> ImportJobRecord | None:
         ...
+
+    def update_status(
+        self,
+        job_id: str,
+        status: str,
+        finished_at_iso: str | None,
+        error_message: str | None,
+    ) -> None:
+        ...
+
+    def list_by_statuses(self, statuses: list[str]) -> list[ImportJobRecord]:
+        ...

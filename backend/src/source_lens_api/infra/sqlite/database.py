@@ -1,4 +1,6 @@
 import sqlite3
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -37,3 +39,13 @@ def initialize_metadata_schema(connection: sqlite3.Connection) -> None:
         """
     )
     connection.commit()
+
+
+@contextmanager
+def metadata_connection(database_path: Path) -> Generator[sqlite3.Connection, None, None]:
+    connection = connect_sqlite(database_path)
+    try:
+        initialize_metadata_schema(connection)
+        yield connection
+    finally:
+        connection.close()

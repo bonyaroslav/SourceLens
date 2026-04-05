@@ -63,6 +63,22 @@ class SQLiteSourceRepository(SourceRepositoryPort):
             updated_at=_parse_datetime(str(row["updated_at"])),
         )
 
+    def update_import_status(
+        self,
+        source_id: str,
+        import_status: str,
+        updated_at_iso: str,
+    ) -> None:
+        self.connection.execute(
+            """
+            UPDATE sources
+            SET import_status = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (import_status, updated_at_iso, source_id),
+        )
+        self.connection.commit()
+
 
 @dataclass
 class SQLiteImportJobRepository(ImportJobRepositoryPort):
@@ -104,3 +120,47 @@ class SQLiteImportJobRepository(ImportJobRepositoryPort):
             finished_at=_parse_datetime(str(finished_at)) if finished_at is not None else None,
             error_message=str(error_message) if error_message is not None else None,
         )
+
+    def update_status(
+        self,
+        job_id: str,
+        status: str,
+        finished_at_iso: str | None,
+        error_message: str | None,
+    ) -> None:
+        self.connection.execute(
+            """
+            UPDATE import_jobs
+            SET status = ?, finished_at = ?, error_message = ?
+            WHERE job_id = ?
+            """,
+            (status, finished_at_iso, error_message, job_id),
+        )
+        self.connection.commit()
+
+    def list_by_statuses(self, statuses: list[str]) -> list[ImportJobRecord]:
+        if not statuses:
+            return []
+
+        placeholders = ", ".join("?" for _ in statuses)
+        rows = self.connection.execute(
+            f"SELECT * FROM import_jobs WHERE status IN ({placeholders})",
+            statuses,
+        ).fetchall()
+        return [
+            ImportJobRecord(
+                job_id=str(row["job_id"]),
+                source_id=str(row["source_id"]),
+                status=str(row["status"]),
+                started_at=_parse_datetime(str(row["started_at"])),
+                finished_at=(
+                    _parse_datetime(str(row["finished_at"]))
+                    if row["finished_at"] is not None
+                    else None
+                ),
+                error_message=(
+                    str(row["error_message"]) if row["error_message"] is not None else None
+                ),
+            )
+            for row in rows
+        ]

@@ -7,6 +7,10 @@ Current scope:
 - FastAPI application scaffold
 - local config loading
 - `GET /health`
+- `POST /sources/import`
+- `GET /import-jobs/{job_id}`
+- request-time source snapshotting and queued local import jobs
+- parser support for `.txt`, `.md`, `.pdf`, `.html`, and `.htm`
 - deterministic PowerShell commands from the repo root
 - repo-specific Phase 2 implementation plan in `..\phase-2-implementation-plan.md`
 

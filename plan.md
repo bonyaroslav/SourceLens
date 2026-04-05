@@ -526,39 +526,19 @@ Acceptance checks:
 - the exact pinned models can be pulled and verified through a deterministic command
 - a collection created from the selected embedding model fails clearly if a later run tries to reuse it with a different dimension
 
-### Phase 2 exit gate: review corrections
+### Phase 2 shipped status
 
-Before starting Phase 3, close the known Phase 2 review findings so the next slice builds on deterministic proof commands, enforced metadata integrity, a retrieval boundary that matches the MVP, and docs that reflect the actual repo state.
+Phase 2 is no longer just a plan. The repo now includes the dependency-proof slice with deterministic commands, source-scoped Qdrant querying, SQLite foreign-key enforcement, and a passing `eval` flow against repo-local persisted data.
 
-This is a hard gate: all items below must be complete before Phase 3 import work begins.
+Delivered behavior:
 
-Build:
+- `.\tools\eval.ps1` proves SQLite metadata writes, Ollama embedding, Qdrant insert/query, and Ollama chat
+- Qdrant retrieval is exposed through the adapter boundary with optional `source_id` scoping
+- SQLite connections enforce declared foreign keys
+- model tags stay pinned and vector dimensionality is derived from the active embedding model
+- docs are aligned with the delivered Phase 1 and Phase 2 backend scope
 
-- make `eval` repeatable against persisted repo-local data by querying Qdrant through a source-scoped filter tied to the current smoke run
-- enable SQLite foreign-key enforcement in the shared connection factory
-- extend the vector-store port so retrieval can be constrained to one selected source without bypassing the abstraction
-- align `README.md` wording with the actual delivered scope of Phase 1 and Phase 2
-
-Implementation notes:
-
-- keep the existing Phase 2 proof order and repo-local persistence path
-- continue generating a per-run `source_id`, `job_id`, and `point_id` during `eval`
-- stop relying on an unfiltered top-1 Qdrant match across the whole collection
-- update the vector-store query contract to `query(query_vector, limit, source_id: str | None = None)`
-- filter Qdrant retrieval by payload field `source_id` when a value is provided
-- keep `source_id=None` as the unfiltered fallback for generic smoke or future admin/debug use
-- keep `source_id` as required vector payload for the Phase 3 retrieval path
-- preserve the existing collection dimension mismatch failure behavior
-- do not change the current metadata schema for this fix beyond enforcing declared foreign keys
-
-Acceptance checks:
-
-- `.\tools\eval.ps1` succeeds on a clean repo-local data directory
-- `.\tools\eval.ps1` succeeds on a second immediate run against the same persisted repo-local data without manual cleanup
-- `.\tools\eval.ps1` still exits non-zero on collection dimension mismatch
-- a SQLite test proves an `import_jobs` row with a missing `source_id` fails through `connect_sqlite()`
-- a Qdrant local-mode test proves source-filtered retrieval returns only matches from the requested `source_id`
-- `README.md` does not claim import, retrieval, or grounded answering work has already landed
+This is the base Phase 3 now builds on. Do not regress these guarantees while adding import behavior.
 
 ### Phase 3: import pipeline v1
 
@@ -568,15 +548,15 @@ Goal:
 
 Build:
 
-- `POST /sources/import` that accepts a local file path
-- import job creation with status tracking
-- source record creation
-- source snapshot into managed workspace storage
-- parser selection by file type
-- text normalization and chunking
-- embedding generation
-- Qdrant upsert with source-scoped payload
-- import job completion or failure state
+- `POST /sources/import` that accepts a local file path plus optional `name` and `description`
+- `GET /import-jobs/{job_id}` for import status, completion time, and error reporting
+- request-time path validation, source id generation, job id generation, and source snapshot into managed workspace storage
+- content hashing from the snapshotted file, not the original path after queueing
+- parser selection for `.txt`, `.md`, `.pdf`, `.html`, and `.htm`
+- deterministic text normalization and paragraph-aware chunking
+- embedding generation through Ollama and Qdrant upsert with source-scoped payload
+- in-process FIFO background worker that marks source and job rows `queued`, `running`, `completed`, or `failed`
+- startup reconciliation that marks previously `queued` or `running` jobs as `failed` after an interrupted process
 
 Supported file types in this phase:
 
@@ -585,6 +565,14 @@ Supported file types in this phase:
 - `.pdf`
 - `.html`
 - `.htm`
+
+Locked Phase 3 execution decisions:
+
+- import execution stays in the API process through a single-consumer FIFO queue
+- importing the same original file path again creates a new `source_id` and a new `job_id`
+- chunk text and retrieval payload stay in Qdrant for this phase; do not add a SQLite `chunks` table yet
+- PDF import is text extraction only; OCR is deferred
+- folder import, browser upload, retry, cancel, delete, and resume semantics are deferred
 
 Why this order is good:
 
@@ -598,11 +586,13 @@ Tradeoff:
 
 Acceptance checks:
 
-- importing a valid local file creates a source record and a completed import job
+- `POST /sources/import` returns `202` with `source_id`, `job_id`, and `queued` status
+- request-time snapshotting happens before the background worker starts parsing
 - importing `.txt`, `.md`, `.pdf`, and `.html` or `.htm` each reaches parsed text and stored chunks
-- a bad path fails cleanly and records an error
-- source content is snapshotted before parsing
-- chunks can be retrieved from Qdrant by source filter
+- a bad path or unsupported extension fails cleanly without enqueuing work
+- completed imports store chunks in Qdrant that can be queried by `source_id`
+- embedding or parser failures mark both the source and job rows as `failed` with a stored error message
+- startup reconciliation marks interrupted `queued` or `running` jobs as `failed`
 
 ### Phase 4: ask flow v1
 
@@ -681,10 +671,14 @@ Minimum backend API:
 
 - `GET /health`
 - `POST /sources/import`
-  - input: local file path
+  - input: local file path plus optional `name` and `description`
   - output: source id, import job id, initial status
+- `GET /import-jobs/{job_id}`
+  - output: job id, source id, status, timestamps, optional error
 - `GET /sources`
+  - phase 4 target, not a Phase 3 requirement
 - `GET /sources/{source_id}`
+  - phase 4 target, not a Phase 3 requirement
 - `POST /sources/{source_id}/ask`
   - input: question
   - output: answer, grounding status, evidence snippets
@@ -707,7 +701,7 @@ Tradeoff:
 - SQLite and Qdrant are both proven independently
 - import succeeds for each supported file type
 - invalid import path fails clearly
-- imported source appears in source listing
+- import jobs can be polled through `GET /import-jobs/{job_id}`
 - ask flow returns answer plus evidence
 - ask flow stays scoped to one selected source
 - weak-evidence case returns cautious output

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from qdrant_client import QdrantClient, models
@@ -41,13 +41,17 @@ def _source_filter(source_id: str | None) -> models.Filter | None:
 class QdrantLocalVectorStore(VectorStorePort):
     collection_name: str
     storage_path: Path
+    _client: QdrantClient | None = field(init=False, default=None, repr=False)
 
-    def __post_init__(self) -> None:
-        self._client = QdrantClient(path=str(self.storage_path))
+    def _get_client(self) -> QdrantClient:
+        if self._client is None:
+            self._client = QdrantClient(path=str(self.storage_path))
+        return self._client
 
     def ensure_collection(self, vector_size: int) -> None:
-        if self._client.collection_exists(collection_name=self.collection_name):
-            collection = self._client.get_collection(collection_name=self.collection_name)
+        client = self._get_client()
+        if client.collection_exists(collection_name=self.collection_name):
+            collection = client.get_collection(collection_name=self.collection_name)
             vectors_config = collection.config.params.vectors
             if vectors_config is None:
                 raise VectorDimensionMismatchError(
@@ -62,7 +66,7 @@ class QdrantLocalVectorStore(VectorStorePort):
                 )
             return
 
-        self._client.create_collection(
+        client.create_collection(
             collection_name=self.collection_name,
             vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.COSINE),
         )
@@ -72,7 +76,7 @@ class QdrantLocalVectorStore(VectorStorePort):
             if "source_id" not in record.payload:
                 raise ValueError("VectorRecord payload must include source_id.")
 
-        self._client.upsert(
+        self._get_client().upsert(
             collection_name=self.collection_name,
             points=[
                 models.PointStruct(
@@ -90,7 +94,7 @@ class QdrantLocalVectorStore(VectorStorePort):
         limit: int,
         source_id: str | None = None,
     ) -> list[VectorMatch]:
-        response = self._client.query_points(
+        response = self._get_client().query_points(
             collection_name=self.collection_name,
             query=query_vector,
             query_filter=_source_filter(source_id),
@@ -106,3 +110,8 @@ class QdrantLocalVectorStore(VectorStorePort):
             )
             for point in response.points
         ]
+
+    def close(self) -> None:
+        if self._client is not None:
+            self._client.close()
+            self._client = None

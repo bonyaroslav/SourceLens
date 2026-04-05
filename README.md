@@ -117,20 +117,23 @@ Ask things like:
 
 ### In progress now
 - backend scaffold with deterministic local commands
-- shallow API health endpoint
+- API health endpoint
 - repo-local runtime config and data bootstrap
 - SQLite metadata repositories for sources and import jobs
 - Ollama chat and embedding adapters
 - Qdrant local vector storage bootstrap with dimension checks
 - deterministic local dependency proof commands for the Phase 2 stack
+- local file import API with request-time snapshotting and queued background jobs
+- import status polling through `GET /import-jobs/{job_id}`
+- parser support for txt / md / pdf / html / htm
+- deterministic text normalization and chunking
 
 ### Next in the MVP slice
-- local file and folder import
-- initial support for txt / md / pdf / html
-- text parsing and chunking
+- source list and source detail endpoints
 - embedding-based retrieval
 - grounded answer generation
 - answer + evidence snippets
+- folder import after the single-file import flow is stable
 
 ### Intentionally not overbuilt yet
 - deep crawling
@@ -196,6 +199,8 @@ Windows-first commands from the repo root:
 Current runtime surface:
 
 - `GET /health`
+- `POST /sources/import`
+- `GET /import-jobs/{job_id}`
 
 `setup.ps1` bootstraps a repo-local helper environment for `uv` under `.tools\bootstrap` and then syncs the backend project.
 

@@ -23,6 +23,20 @@ def _extract_vector_size(
     return int(vectors_config.size)
 
 
+def _source_filter(source_id: str | None) -> models.Filter | None:
+    if source_id is None:
+        return None
+
+    return models.Filter(
+        must=[
+            models.FieldCondition(
+                key="source_id",
+                match=models.MatchValue(value=source_id),
+            )
+        ]
+    )
+
+
 @dataclass
 class QdrantLocalVectorStore(VectorStorePort):
     collection_name: str
@@ -54,6 +68,10 @@ class QdrantLocalVectorStore(VectorStorePort):
         )
 
     def upsert(self, records: list[VectorRecord]) -> None:
+        for record in records:
+            if "source_id" not in record.payload:
+                raise ValueError("VectorRecord payload must include source_id.")
+
         self._client.upsert(
             collection_name=self.collection_name,
             points=[
@@ -66,10 +84,16 @@ class QdrantLocalVectorStore(VectorStorePort):
             ],
         )
 
-    def query(self, query_vector: list[float], limit: int) -> list[VectorMatch]:
+    def query(
+        self,
+        query_vector: list[float],
+        limit: int,
+        source_id: str | None = None,
+    ) -> list[VectorMatch]:
         response = self._client.query_points(
             collection_name=self.collection_name,
             query=query_vector,
+            query_filter=_source_filter(source_id),
             limit=limit,
             with_payload=True,
             with_vectors=False,

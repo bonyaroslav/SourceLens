@@ -526,6 +526,40 @@ Acceptance checks:
 - the exact pinned models can be pulled and verified through a deterministic command
 - a collection created from the selected embedding model fails clearly if a later run tries to reuse it with a different dimension
 
+### Phase 2 exit gate: review corrections
+
+Before starting Phase 3, close the known Phase 2 review findings so the next slice builds on deterministic proof commands, enforced metadata integrity, a retrieval boundary that matches the MVP, and docs that reflect the actual repo state.
+
+This is a hard gate: all items below must be complete before Phase 3 import work begins.
+
+Build:
+
+- make `eval` repeatable against persisted repo-local data by querying Qdrant through a source-scoped filter tied to the current smoke run
+- enable SQLite foreign-key enforcement in the shared connection factory
+- extend the vector-store port so retrieval can be constrained to one selected source without bypassing the abstraction
+- align `README.md` wording with the actual delivered scope of Phase 1 and Phase 2
+
+Implementation notes:
+
+- keep the existing Phase 2 proof order and repo-local persistence path
+- continue generating a per-run `source_id`, `job_id`, and `point_id` during `eval`
+- stop relying on an unfiltered top-1 Qdrant match across the whole collection
+- update the vector-store query contract to `query(query_vector, limit, source_id: str | None = None)`
+- filter Qdrant retrieval by payload field `source_id` when a value is provided
+- keep `source_id=None` as the unfiltered fallback for generic smoke or future admin/debug use
+- keep `source_id` as required vector payload for the Phase 3 retrieval path
+- preserve the existing collection dimension mismatch failure behavior
+- do not change the current metadata schema for this fix beyond enforcing declared foreign keys
+
+Acceptance checks:
+
+- `.\tools\eval.ps1` succeeds on a clean repo-local data directory
+- `.\tools\eval.ps1` succeeds on a second immediate run against the same persisted repo-local data without manual cleanup
+- `.\tools\eval.ps1` still exits non-zero on collection dimension mismatch
+- a SQLite test proves an `import_jobs` row with a missing `source_id` fails through `connect_sqlite()`
+- a Qdrant local-mode test proves source-filtered retrieval returns only matches from the requested `source_id`
+- `README.md` does not claim import, retrieval, or grounded answering work has already landed
+
 ### Phase 3: import pipeline v1
 
 Goal:

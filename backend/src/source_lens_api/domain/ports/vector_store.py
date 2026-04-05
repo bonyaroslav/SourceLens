@@ -10,5 +10,10 @@ class VectorStorePort(Protocol):
     def upsert(self, records: list[VectorRecord]) -> None:
         ...
 
-    def query(self, query_vector: list[float], limit: int) -> list[VectorMatch]:
+    def query(
+        self,
+        query_vector: list[float],
+        limit: int,
+        source_id: str | None = None,
+    ) -> list[VectorMatch]:
         ...

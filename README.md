@@ -116,14 +116,21 @@ Ask things like:
 ## MVP scope
 
 ### In progress now
-- source catalog
+- backend scaffold with deterministic local commands
+- shallow API health endpoint
+- repo-local runtime config and data bootstrap
+- SQLite metadata repositories for sources and import jobs
+- Ollama chat and embedding adapters
+- Qdrant local vector storage bootstrap with dimension checks
+- deterministic local dependency proof commands for the Phase 2 stack
+
+### Next in the MVP slice
 - local file and folder import
 - initial support for txt / md / pdf / html
 - text parsing and chunking
 - embedding-based retrieval
 - grounded answer generation
 - answer + evidence snippets
-- local runtime via Ollama
 
 ### Intentionally not overbuilt yet
 - deep crawling

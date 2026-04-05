@@ -82,7 +82,7 @@ def main() -> None:
                 )
             ]
         )
-        matches = vector_store.query(embedding, limit=1)
+        matches = vector_store.query(embedding, limit=1, source_id=source_id)
         if not matches or matches[0].point_id != point_id:
             raise RuntimeError("Qdrant similarity query smoke check failed.")
         print(f"qdrant local insert/query: ok ({matches[0].score:.4f})")

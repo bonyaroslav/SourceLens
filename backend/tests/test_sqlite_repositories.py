@@ -1,7 +1,11 @@
+import sqlite3
 from datetime import UTC, datetime
+from pathlib import Path
+
+import pytest
 
 from source_lens_api.domain.models import ImportJobRecord, SourceRecord
-from source_lens_api.infra.sqlite.database import initialize_metadata_schema
+from source_lens_api.infra.sqlite.database import connect_sqlite, initialize_metadata_schema
 from source_lens_api.infra.sqlite.repositories import (
     SQLiteImportJobRepository,
     SQLiteSourceRepository,
@@ -43,3 +47,30 @@ def test_sqlite_repositories_round_trip_records(sqlite_connection) -> None:
 
     assert stored_source == source_record
     assert stored_job == import_job_record
+
+
+def test_connect_sqlite_enforces_foreign_keys(tmp_path: Path) -> None:
+    database_path = tmp_path / "source_lens.db"
+    connection = connect_sqlite(database_path)
+    try:
+        initialize_metadata_schema(connection)
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                """
+                INSERT INTO import_jobs (
+                    job_id, source_id, status, started_at, finished_at, error_message
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    "job-missing-source",
+                    "missing-source",
+                    "queued",
+                    "2026-01-01T00:00:00+00:00",
+                    None,
+                    None,
+                ),
+            )
+            connection.commit()
+    finally:
+        connection.close()

@@ -634,6 +634,10 @@ Goal:
 
 - add a small but real quality loop as soon as the first slice works
 
+Implementation note:
+
+- use `phase-5-implementation-plan.md` as the repo-specific checklist for this phase
+
 Build:
 
 - a small `eval` command for the first slice

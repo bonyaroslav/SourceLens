@@ -1,12 +1,16 @@
 from pathlib import Path
 
+import pytest
+
 from source_lens_api.application.imports import FAILED, INTERRUPTED_ERROR_MESSAGE, ImportRequest
 from source_lens_api.infra.qdrant.vector_store import QdrantLocalVectorStore
 
 from .support import (
     FakeEmbeddingsClient,
     build_test_runtime,
+    get_source_record,
     wait_for_job_status,
+    write_minimal_pdf,
     write_text_fixture,
 )
 
@@ -55,6 +59,81 @@ def test_import_job_marks_failure_when_embeddings_error(tmp_path: Path) -> None:
 
     assert job is not None
     assert job.error_message == "Embedding failed for test"
+
+
+@pytest.mark.parametrize(
+    ("file_name", "writer"),
+    [
+        ("notes.md", lambda path: write_text_fixture(path, "# Title\n\nMarkdown body text.")),
+        (
+            "notes.html",
+            lambda path: write_text_fixture(
+                path,
+                "<html><body><h1>HTML title</h1><p>HTML body text.</p></body></html>",
+            ),
+        ),
+        (
+            "notes.htm",
+            lambda path: write_text_fixture(
+                path,
+                "<html><body><p>Short HTML body.</p></body></html>",
+            ),
+        ),
+        ("notes.pdf", lambda path: write_minimal_pdf(path, "PDF import text")),
+    ],
+)
+def test_import_job_supports_all_phase3_non_txt_formats(
+    tmp_path: Path,
+    file_name: str,
+    writer,
+) -> None:
+    runtime = build_test_runtime(tmp_path)
+    runtime.initialize(start_worker=True)
+    input_file = writer(tmp_path / file_name)
+
+    try:
+        submission = runtime.coordinator.submit_import(ImportRequest(path=str(input_file)))
+        wait_for_job_status(runtime, submission.job_id, "completed")
+        matches = runtime.vector_store.query(
+            [10.0, 1.0, 1.0],
+            limit=10,
+            source_id=submission.source_id,
+        )
+    finally:
+        runtime.shutdown()
+
+    assert matches
+    assert all(match.payload["source_id"] == submission.source_id for match in matches)
+    assert all(
+        isinstance(match.payload["text"], str) and match.payload["text"] for match in matches
+    )
+
+
+def test_import_job_marks_source_and_job_failed_when_parser_errors(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime = build_test_runtime(tmp_path)
+    runtime.initialize(start_worker=True)
+    input_file = write_text_fixture(tmp_path / "notes.txt", "Parser failure input")
+
+    def fail_parser(_: Path) -> str:
+        raise RuntimeError("Parser exploded")
+
+    monkeypatch.setattr("source_lens_api.application.imports.extract_text_from_path", fail_parser)
+
+    try:
+        submission = runtime.coordinator.submit_import(ImportRequest(path=str(input_file)))
+        wait_for_job_status(runtime, submission.job_id, FAILED)
+        job = runtime.coordinator.get_job(submission.job_id)
+        source = get_source_record(runtime, submission.source_id)
+    finally:
+        runtime.shutdown()
+
+    assert job is not None
+    assert job.error_message == "Parser exploded"
+    assert source is not None
+    assert source.import_status == FAILED
 
 
 def test_runtime_reconciles_interrupted_queued_jobs_as_failed(tmp_path: Path) -> None:

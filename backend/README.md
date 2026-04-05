@@ -9,8 +9,13 @@ Current scope:
 - `GET /health`
 - `POST /sources/import`
 - `GET /import-jobs/{job_id}`
+- `GET /sources`
+- `GET /sources/{source_id}`
+- `POST /sources/{source_id}/ask`
 - request-time source snapshotting and queued local import jobs
 - parser support for `.txt`, `.md`, `.pdf`, `.html`, and `.htm`
+- source catalog reads from SQLite metadata
+- ask flow retrieves source-scoped evidence from Qdrant and returns grounded answers
 - deterministic PowerShell commands from the repo root
 - repo-specific Phase 2 implementation plan in `..\phase-2-implementation-plan.md`
 

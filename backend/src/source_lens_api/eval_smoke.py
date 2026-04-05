@@ -1,20 +1,22 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from .bootstrap import ensure_runtime_directories, get_runtime_paths
+from .application.sources import GROUNDED, INSUFFICIENT_EVIDENCE
 from .config import get_settings
 from .domain.models import ImportJobRecord, SourceRecord, VectorRecord
 from .infra.ollama.client import OllamaChatClient, OllamaEmbeddingsClient
-from .infra.qdrant.vector_store import QdrantLocalVectorStore
 from .infra.sqlite.database import connect_sqlite, initialize_metadata_schema
 from .infra.sqlite.repositories import SQLiteImportJobRepository, SQLiteSourceRepository
 from .main import create_app
+from .runtime import build_runtime
 
 
 def main() -> None:
     settings = get_settings()
-    app = create_app()
-    paths = ensure_runtime_directories(get_runtime_paths(settings))
+    runtime = build_runtime(settings=settings)
+    app = create_app(runtime=runtime, start_worker=False)
+    runtime.initialize(start_worker=False)
+    paths = runtime.paths
     print(f"eval scaffold ready: {settings.app_name} [{settings.environment}]")
     print(f"registered routes: {len(app.routes)}")
     print(f"data directory: {paths.data_dir}")
@@ -56,7 +58,12 @@ def main() -> None:
         stored_job = import_job_repository.get_by_id(job_id)
         if stored_source is None or stored_job is None:
             raise RuntimeError("SQLite repository smoke check failed.")
-        print("sqlite repository write/read: ok")
+        if not any(record.id == source_id for record in source_repository.list_all()):
+            raise RuntimeError("SQLite source listing smoke check failed.")
+        catalog_source = runtime.catalog_service.get_source(source_id)
+        if catalog_source.id != source_id:
+            raise RuntimeError("Source catalog smoke check failed.")
+        print("sqlite repository write/read/list: ok")
 
         embeddings_client = OllamaEmbeddingsClient(
             base_url=settings.ollama_base_url,
@@ -67,10 +74,7 @@ def main() -> None:
             raise RuntimeError("Embedding smoke check returned an empty vector.")
         print(f"ollama embedding: ok ({len(embedding)} dimensions)")
 
-        vector_store = QdrantLocalVectorStore(
-            collection_name=settings.qdrant_collection,
-            storage_path=paths.qdrant_dir,
-        )
+        vector_store = runtime.vector_store
         vector_store.ensure_collection(len(embedding))
         point_id = str(uuid4())
         vector_store.upsert(
@@ -78,7 +82,12 @@ def main() -> None:
                 VectorRecord(
                     point_id=point_id,
                     vector=embedding,
-                    payload={"source_id": source_id, "label": "phase2-smoke"},
+                    payload={
+                        "source_id": source_id,
+                        "chunk_id": f"{source_id}:0",
+                        "chunk_index": 0,
+                        "text": "Source Lens dependency proof chunk for ask flow smoke testing.",
+                    },
                 )
             ]
         )
@@ -101,8 +110,44 @@ def main() -> None:
                 f"{chat_response!r}"
             )
         print("ollama chat: ok")
+
+        ask_result = runtime.ask_service.ask(
+            source_id=source_id,
+            question="What is this source about?",
+        )
+        if ask_result.grounding_status != GROUNDED or not ask_result.evidence:
+            raise RuntimeError("Ask flow grounded smoke check failed.")
+        if not ask_result.answer.strip():
+            raise RuntimeError("Ask flow returned an empty answer.")
+        print("ask flow grounded answer: ok")
+
+        empty_source_id = str(uuid4())
+        empty_source = SourceRecord(
+            id=empty_source_id,
+            name="Phase 4 weak evidence proof",
+            description="No vectors are stored for this source.",
+            source_type="phase4-smoke",
+            original_path="phase4://weak-source",
+            snapshot_path="phase4://weak-snapshot",
+            content_hash="phase4-weak-hash",
+            import_status="completed",
+            created_at=timestamp,
+            updated_at=timestamp,
+        )
+        source_repository.create(empty_source)
+        insufficient_result = runtime.ask_service.ask(
+            source_id=empty_source_id,
+            question="Can you answer without evidence?",
+        )
+        if (
+            insufficient_result.grounding_status != INSUFFICIENT_EVIDENCE
+            or insufficient_result.evidence
+        ):
+            raise RuntimeError("Ask flow insufficient-evidence smoke check failed.")
+        print("ask flow insufficient evidence gate: ok")
     finally:
         connection.close()
+        runtime.shutdown()
 
 
 if __name__ == "__main__":

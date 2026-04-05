@@ -127,13 +127,15 @@ Ask things like:
 - import status polling through `GET /import-jobs/{job_id}`
 - parser support for txt / md / pdf / html / htm
 - deterministic text normalization and chunking
-
-### Next in the MVP slice
 - source list and source detail endpoints
-- embedding-based retrieval
+- embedding-based retrieval for one selected source
 - grounded answer generation
 - answer + evidence snippets
+
+### Next in the MVP slice
 - folder import after the single-file import flow is stable
+- Angular source catalog and ask UI
+- evaluation baseline for grounded and weak-evidence behavior
 
 ### Intentionally not overbuilt yet
 - deep crawling
@@ -201,6 +203,9 @@ Current runtime surface:
 - `GET /health`
 - `POST /sources/import`
 - `GET /import-jobs/{job_id}`
+- `GET /sources`
+- `GET /sources/{source_id}`
+- `POST /sources/{source_id}/ask`
 
 `setup.ps1` bootstraps a repo-local helper environment for `uv` under `.tools\bootstrap` and then syncs the backend project.
 

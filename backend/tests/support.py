@@ -1,12 +1,26 @@
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 from source_lens_api.bootstrap import get_runtime_paths
 from source_lens_api.config import Settings
-from source_lens_api.domain.models import VectorMatch, VectorRecord
+from source_lens_api.domain.models import SourceRecord, VectorMatch, VectorRecord
+from source_lens_api.domain.ports.chat import ChatPort
 from source_lens_api.domain.ports.embeddings import EmbeddingsPort
 from source_lens_api.domain.ports.vector_store import VectorStorePort
+from source_lens_api.infra.sqlite.database import metadata_connection
+from source_lens_api.infra.sqlite.repositories import SQLiteSourceRepository
 from source_lens_api.runtime import AppRuntime, build_runtime
+
+
+class FakeChatClient(ChatPort):
+    def __init__(self, response: str = "Grounded answer from fake chat.") -> None:
+        self._response = response
+        self.prompts: list[str] = []
+
+    def generate(self, prompt: str) -> str:
+        self.prompts.append(prompt)
+        return self._response
 
 
 class FakeEmbeddingsClient(EmbeddingsPort):
@@ -58,12 +72,14 @@ class InMemoryVectorStore(VectorStorePort):
 def build_test_runtime(
     tmp_path: Path,
     *,
+    chat: ChatPort | None = None,
     embeddings: EmbeddingsPort | None = None,
     vector_store: VectorStorePort | None = None,
 ) -> AppRuntime:
     settings = Settings(data_dir=tmp_path / ".local" / "source-lens")
     return build_runtime(
         settings=settings,
+        chat=chat or FakeChatClient(),
         embeddings=embeddings or FakeEmbeddingsClient(),
         vector_store=vector_store or InMemoryVectorStore(),
     )
@@ -71,6 +87,37 @@ def build_test_runtime(
 
 def metadata_db_path(runtime: AppRuntime) -> Path:
     return get_runtime_paths(runtime.settings).metadata_db_path
+
+
+def create_source_record(
+    runtime: AppRuntime,
+    *,
+    source_id: str,
+    import_status: str,
+    name: str = "Source Lens test source",
+    description: str = "Test source",
+) -> SourceRecord:
+    timestamp = datetime.now(UTC)
+    record = SourceRecord(
+        id=source_id,
+        name=name,
+        description=description,
+        source_type="test",
+        original_path=f"test://{source_id}",
+        snapshot_path=f"snapshot://{source_id}",
+        content_hash=f"hash-{source_id}",
+        import_status=import_status,
+        created_at=timestamp,
+        updated_at=timestamp,
+    )
+    with metadata_connection(metadata_db_path(runtime)) as connection:
+        SQLiteSourceRepository(connection).create(record)
+    return record
+
+
+def get_source_record(runtime: AppRuntime, source_id: str) -> SourceRecord | None:
+    with metadata_connection(metadata_db_path(runtime)) as connection:
+        return SQLiteSourceRepository(connection).get_by_id(source_id)
 
 
 def wait_for_job_status(

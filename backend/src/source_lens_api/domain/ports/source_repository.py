@@ -7,6 +7,9 @@ class SourceRepositoryPort(Protocol):
     def create(self, record: SourceRecord) -> None:
         ...
 
+    def list_all(self) -> list[SourceRecord]:
+        ...
+
     def get_by_id(self, source_id: str) -> SourceRecord | None:
         ...
 

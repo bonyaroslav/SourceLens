@@ -42,6 +42,29 @@ class SQLiteSourceRepository(SourceRepositoryPort):
         )
         self.connection.commit()
 
+    def list_all(self) -> list[SourceRecord]:
+        rows = self.connection.execute(
+            """
+            SELECT * FROM sources
+            ORDER BY created_at DESC, id DESC
+            """
+        ).fetchall()
+        return [
+            SourceRecord(
+                id=str(row["id"]),
+                name=str(row["name"]),
+                description=str(row["description"]),
+                source_type=str(row["source_type"]),
+                original_path=str(row["original_path"]),
+                snapshot_path=str(row["snapshot_path"]),
+                content_hash=str(row["content_hash"]),
+                import_status=str(row["import_status"]),
+                created_at=_parse_datetime(str(row["created_at"])),
+                updated_at=_parse_datetime(str(row["updated_at"])),
+            )
+            for row in rows
+        ]
+
     def get_by_id(self, source_id: str) -> SourceRecord | None:
         row = self.connection.execute(
             "SELECT * FROM sources WHERE id = ?",

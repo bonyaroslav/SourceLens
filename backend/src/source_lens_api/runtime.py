@@ -3,11 +3,13 @@ import threading
 from dataclasses import dataclass
 
 from .application.imports import ImportCoordinator, ImportWorkItem
+from .application.sources import AskService, SourceCatalogService
 from .bootstrap import RuntimePaths, ensure_runtime_directories, get_runtime_paths
 from .config import Settings, get_settings
+from .domain.ports.chat import ChatPort
 from .domain.ports.embeddings import EmbeddingsPort
 from .domain.ports.vector_store import VectorStorePort
-from .infra.ollama.client import OllamaEmbeddingsClient
+from .infra.ollama.client import OllamaChatClient, OllamaEmbeddingsClient
 from .infra.qdrant.vector_store import QdrantLocalVectorStore
 from .infra.sqlite.database import metadata_connection
 
@@ -52,6 +54,8 @@ class AppRuntime:
     settings: Settings
     paths: RuntimePaths
     coordinator: ImportCoordinator
+    catalog_service: SourceCatalogService
+    ask_service: AskService
     worker: ImportWorker
     vector_store: VectorStorePort
     _worker_started: bool = False
@@ -77,12 +81,17 @@ class AppRuntime:
 def build_runtime(
     *,
     settings: Settings | None = None,
+    chat: ChatPort | None = None,
     embeddings: EmbeddingsPort | None = None,
     vector_store: VectorStorePort | None = None,
 ) -> AppRuntime:
     resolved_settings = settings or get_settings()
     paths = get_runtime_paths(resolved_settings)
     work_queue: "queue.Queue[ImportWorkItem | None]" = queue.Queue()
+    resolved_chat = chat or OllamaChatClient(
+        base_url=resolved_settings.ollama_base_url,
+        model=resolved_settings.chat_model,
+    )
     resolved_embeddings = embeddings or OllamaEmbeddingsClient(
         base_url=resolved_settings.ollama_base_url,
         model=resolved_settings.embedding_model,
@@ -98,10 +107,19 @@ def build_runtime(
         vector_store=resolved_vector_store,
         work_queue=work_queue,
     )
+    catalog_service = SourceCatalogService(metadata_db_path=paths.metadata_db_path)
+    ask_service = AskService(
+        metadata_db_path=paths.metadata_db_path,
+        embeddings=resolved_embeddings,
+        chat=resolved_chat,
+        vector_store=resolved_vector_store,
+    )
     return AppRuntime(
         settings=resolved_settings,
         paths=paths,
         coordinator=coordinator,
+        catalog_service=catalog_service,
+        ask_service=ask_service,
         worker=ImportWorker(coordinator=coordinator, work_queue=work_queue),
         vector_store=resolved_vector_store,
     )

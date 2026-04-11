@@ -9,6 +9,7 @@ try {
         "--project",
         $backendProject,
         "pytest",
+        "--basetemp=.pytest_tmp",
         "-p",
         "no:cacheprovider"
     )

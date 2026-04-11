@@ -133,9 +133,9 @@ Ask things like:
 - answer + evidence snippets
 
 ### Next in the MVP slice
-- folder import after the single-file import flow is stable
-- Angular source catalog and ask UI
+- folder import to complete the backend vertical slice
 - evaluation baseline for grounded and weak-evidence behavior
+- frontend planning only after the backend vertical slice is locked
 
 ### Intentionally not overbuilt yet
 - deep crawling
@@ -151,8 +151,8 @@ The MVP is a **sharp vertical slice**: one selected source, one clean retrieval 
 ## Architecture at a glance
 
 ```text
-UI
- ↓
+Future UI
+   ↓
 Python API
  ├─ source catalog
  ├─ local import pipeline
@@ -178,7 +178,8 @@ Python API
 - **Vector store:** Qdrant local mode
 - **Metadata store:** SQLite via a swappable repository / adapter layer
 - **Workflow:** import → chunk → embed → retrieve → answer
-- **Primary UX:** source selection, question input, answer, evidence
+- **Current milestone:** backend vertical slice only
+- **Next milestone:** Angular source selection and ask UI
 
 ### Why this stack
 Because it gets to a real end-to-end prototype fast, stays local-first, and keeps the path open for more controlled enterprise deployment later.

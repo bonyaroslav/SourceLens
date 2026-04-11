@@ -59,6 +59,23 @@ class ImportJobView:
     error_message: str | None
 
 
+@dataclass(frozen=True)
+class ImportTarget:
+    resolved_path: Path
+    source_type: str
+    files: list[Path]
+
+
+@dataclass(frozen=True)
+class PreparedChunk:
+    chunk_id: str
+    chunk_index: int
+    text: str
+    origin_path: str
+    snapshot_path: str
+    relative_path: str
+
+
 class ImportCoordinator:
     def __init__(
         self,
@@ -80,16 +97,17 @@ class ImportCoordinator:
             yield SQLiteSourceRepository(connection), SQLiteImportJobRepository(connection)
 
     def submit_import(self, request: ImportRequest) -> ImportSubmission:
-        resolved_path = self._resolve_import_path(request.path)
+        target = self._resolve_import_target(request.path)
+        resolved_path = target.resolved_path
         source_id = str(uuid4())
         job_id = str(uuid4())
         snapshot_path = self._snapshot_path(
             source_id=source_id,
-            extension=resolved_path.suffix.lower(),
+            source_type=target.source_type,
+            original_path=resolved_path,
         )
-        snapshot_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(resolved_path, snapshot_path)
-        content_hash = self._sha256(snapshot_path)
+        self._snapshot_import_target(target=target, snapshot_path=snapshot_path)
+        content_hash = self._hash_snapshot(snapshot_path)
         timestamp = datetime.now(UTC)
 
         source_record = SourceRecord(
@@ -104,7 +122,7 @@ class ImportCoordinator:
                 if request.description and request.description.strip()
                 else f"Imported from {resolved_path}"
             ),
-            source_type="local_file",
+            source_type=target.source_type,
             original_path=str(resolved_path),
             snapshot_path=str(snapshot_path),
             content_hash=content_hash,
@@ -126,7 +144,7 @@ class ImportCoordinator:
                 source_repository.create(source_record)
                 import_job_repository.create(job_record)
         except Exception:
-            shutil.rmtree(snapshot_path.parent, ignore_errors=True)
+            self._cleanup_snapshot(snapshot_path)
             raise
 
         self._work_queue.put(ImportWorkItem(source_id=source_id, job_id=job_id))
@@ -190,11 +208,9 @@ class ImportCoordinator:
 
         try:
             snapshot_path = Path(source.snapshot_path)
-            raw_text = extract_text_from_path(snapshot_path)
-            normalized_text = normalize_text(raw_text)
-            chunks = chunk_text(normalized_text, source_id=source.id)
+            chunks = self._prepare_chunks(source=source, snapshot_path=snapshot_path)
             if not chunks:
-                raise ImportRequestError("Imported file did not produce any indexable text.")
+                raise ImportRequestError("Imported content did not produce any indexable text.")
 
             embeddings = self._embeddings.embed([chunk.text for chunk in chunks])
             if len(embeddings) != len(chunks):
@@ -210,8 +226,9 @@ class ImportCoordinator:
                         "chunk_id": chunk.chunk_id,
                         "chunk_index": chunk.chunk_index,
                         "text": chunk.text,
-                        "origin_path": source.original_path,
-                        "snapshot_path": source.snapshot_path,
+                        "origin_path": chunk.origin_path,
+                        "snapshot_path": chunk.snapshot_path,
+                        "relative_path": chunk.relative_path,
                         "content_hash": source.content_hash,
                     },
                 )
@@ -255,27 +272,56 @@ class ImportCoordinator:
                 error_message=error_message[:1000],
             )
 
-    def _resolve_import_path(self, raw_path: str) -> Path:
+    def _resolve_import_target(self, raw_path: str) -> ImportTarget:
         path = Path(raw_path).expanduser()
         try:
             resolved_path = path.resolve(strict=True)
         except FileNotFoundError as error:
             raise ImportRequestError(f"File path does not exist: {raw_path}") from error
 
-        if not resolved_path.is_file():
-            raise ImportRequestError(f"Import path must be a file: {resolved_path}")
-
-        extension = resolved_path.suffix.lower()
-        if extension not in SUPPORTED_EXTENSIONS:
-            raise ImportRequestError(
-                "Unsupported file type. Supported extensions: "
-                + ", ".join(sorted(SUPPORTED_EXTENSIONS))
+        if resolved_path.is_file():
+            extension = resolved_path.suffix.lower()
+            if extension not in SUPPORTED_EXTENSIONS:
+                raise ImportRequestError(
+                    "Unsupported file type. Supported extensions: "
+                    + ", ".join(sorted(SUPPORTED_EXTENSIONS))
+                )
+            return ImportTarget(
+                resolved_path=resolved_path,
+                source_type="local_file",
+                files=[resolved_path],
             )
 
-        return resolved_path
+        if resolved_path.is_dir():
+            files = sorted(
+                (
+                    item
+                    for item in resolved_path.rglob("*")
+                    if item.is_file() and item.suffix.lower() in SUPPORTED_EXTENSIONS
+                ),
+                key=lambda item: str(item.relative_to(resolved_path)).lower(),
+            )
+            if not files:
+                raise ImportRequestError(
+                    "Folder import requires at least one supported file. Supported extensions: "
+                    + ", ".join(sorted(SUPPORTED_EXTENSIONS))
+                )
+            return ImportTarget(
+                resolved_path=resolved_path,
+                source_type="local_folder",
+                files=files,
+            )
 
-    def _snapshot_path(self, source_id: str, extension: str) -> Path:
-        return self._runtime_paths.snapshots_dir / source_id / f"source{extension}"
+        raise ImportRequestError(f"Import path must be a file or folder: {resolved_path}")
+
+    def _snapshot_path(self, *, source_id: str, source_type: str, original_path: Path) -> Path:
+        if source_type == "local_folder":
+            return self._runtime_paths.snapshots_dir / source_id / "source"
+        return (
+            self._runtime_paths.snapshots_dir
+            / source_id
+            / f"source{original_path.suffix.lower()}"
+        )
 
     @staticmethod
     def _sha256(path: Path) -> str:
@@ -284,3 +330,99 @@ class ImportCoordinator:
             for block in iter(lambda: handle.read(65536), b""):
                 digest.update(block)
         return digest.hexdigest()
+
+    def _snapshot_import_target(self, *, target: ImportTarget, snapshot_path: Path) -> None:
+        if target.source_type == "local_file":
+            snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(target.resolved_path, snapshot_path)
+            return
+
+        snapshot_path.mkdir(parents=True, exist_ok=True)
+        for file_path in target.files:
+            relative_path = file_path.relative_to(target.resolved_path)
+            destination = snapshot_path / relative_path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(file_path, destination)
+
+    def _hash_snapshot(self, snapshot_path: Path) -> str:
+        if snapshot_path.is_file():
+            return self._sha256(snapshot_path)
+
+        digest = hashlib.sha256()
+        for file_path in sorted(
+            (path for path in snapshot_path.rglob("*") if path.is_file()),
+            key=lambda item: str(item.relative_to(snapshot_path)).lower(),
+        ):
+            digest.update(str(file_path.relative_to(snapshot_path)).encode("utf-8"))
+            with file_path.open("rb") as handle:
+                for block in iter(lambda: handle.read(65536), b""):
+                    digest.update(block)
+        return digest.hexdigest()
+
+    def _cleanup_snapshot(self, snapshot_path: Path) -> None:
+        snapshot_root = snapshot_path if snapshot_path.is_dir() else snapshot_path.parent
+        shutil.rmtree(snapshot_root, ignore_errors=True)
+
+    def _prepare_chunks(self, *, source: SourceRecord, snapshot_path: Path) -> list[PreparedChunk]:
+        if source.source_type == "local_folder":
+            return self._prepare_folder_chunks(source=source, snapshot_path=snapshot_path)
+        return self._prepare_file_chunks(
+            source=source,
+            source_path=Path(source.original_path),
+            snapshot_path=snapshot_path,
+            relative_path=Path(source.original_path).name,
+            start_index=0,
+        )
+
+    def _prepare_folder_chunks(
+        self,
+        *,
+        source: SourceRecord,
+        snapshot_path: Path,
+    ) -> list[PreparedChunk]:
+        source_root = Path(source.original_path)
+        prepared: list[PreparedChunk] = []
+        next_index = 0
+        for file_path in sorted(
+            (path for path in snapshot_path.rglob("*") if path.is_file()),
+            key=lambda item: str(item.relative_to(snapshot_path)).lower(),
+        ):
+            relative_path = str(file_path.relative_to(snapshot_path)).replace("\\", "/")
+            original_file_path = source_root / Path(relative_path)
+            file_chunks = self._prepare_file_chunks(
+                source=source,
+                source_path=original_file_path,
+                snapshot_path=file_path,
+                relative_path=relative_path,
+                start_index=next_index,
+            )
+            prepared.extend(file_chunks)
+            next_index += len(file_chunks)
+        return prepared
+
+    def _prepare_file_chunks(
+        self,
+        *,
+        source: SourceRecord,
+        source_path: Path,
+        snapshot_path: Path,
+        relative_path: str,
+        start_index: int,
+    ) -> list[PreparedChunk]:
+        raw_text = extract_text_from_path(snapshot_path)
+        normalized_text = normalize_text(raw_text)
+        chunks = chunk_text(normalized_text, source_id=source.id)
+        prepared: list[PreparedChunk] = []
+        for offset, chunk in enumerate(chunks):
+            chunk_index = start_index + offset
+            prepared.append(
+                PreparedChunk(
+                    chunk_id=f"{source.id}:{chunk_index}",
+                    chunk_index=chunk_index,
+                    text=chunk.text,
+                    origin_path=str(source_path),
+                    snapshot_path=str(snapshot_path),
+                    relative_path=relative_path,
+                )
+            )
+        return prepared

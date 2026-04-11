@@ -13,11 +13,15 @@ Current scope:
 - `GET /sources/{source_id}`
 - `POST /sources/{source_id}/ask`
 - request-time source snapshotting and queued local import jobs
+- local file and folder import
 - parser support for `.txt`, `.md`, `.pdf`, `.html`, and `.htm`
 - source catalog reads from SQLite metadata
 - ask flow retrieves source-scoped evidence from Qdrant and returns grounded answers
+- eval runner with one grounded fixture case and one insufficient-evidence case
 - deterministic PowerShell commands from the repo root
 - repo-specific Phase 2 implementation plan in `..\phase-2-implementation-plan.md`
+
+This is the backend-only milestone. Frontend work is intentionally deferred.
 
 Windows-first commands from the repo root:
 

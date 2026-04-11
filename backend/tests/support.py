@@ -142,11 +142,13 @@ def wait_for_job_status(
 
 
 def write_text_fixture(path: Path, content: str) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
     return path
 
 
 def write_minimal_pdf(path: Path, text: str) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
     escaped_text = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
     stream = f"BT\n/F1 18 Tf\n72 100 Td\n({escaped_text}) Tj\nET\n".encode("latin-1")
     objects = [

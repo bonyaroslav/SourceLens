@@ -169,3 +169,46 @@ def test_reimporting_same_path_creates_distinct_source_ids(tmp_path: Path) -> No
         runtime.shutdown()
 
     assert first.source_id != second.source_id
+
+
+def test_folder_import_indexes_supported_files_as_one_source(tmp_path: Path) -> None:
+    vector_store = QdrantLocalVectorStore(
+        collection_name="source_lens_chunks",
+        storage_path=tmp_path / "qdrant",
+    )
+    runtime = build_test_runtime(
+        tmp_path,
+        vector_store=vector_store,
+    )
+    runtime.initialize(start_worker=True)
+    source_folder = tmp_path / "folder-source"
+    write_text_fixture(source_folder / "alpha.md", "# Alpha\n\nAlpha evidence")
+    write_text_fixture(source_folder / "nested" / "beta.txt", "Beta evidence")
+    write_text_fixture(source_folder / "ignored.json", "{}")
+
+    try:
+        submission = runtime.coordinator.submit_import(ImportRequest(path=str(source_folder)))
+        wait_for_job_status(runtime, submission.job_id, "completed")
+        matches = vector_store.query([10.0, 1.0, 1.0], limit=10, source_id=submission.source_id)
+    finally:
+        runtime.shutdown()
+
+    assert matches
+    assert {match.payload["relative_path"] for match in matches} == {
+        "alpha.md",
+        "nested/beta.txt",
+    }
+    assert all(match.payload["source_id"] == submission.source_id for match in matches)
+
+
+def test_folder_import_rejects_empty_folder(tmp_path: Path) -> None:
+    runtime = build_test_runtime(tmp_path)
+    runtime.initialize(start_worker=False)
+    empty_folder = tmp_path / "empty"
+    empty_folder.mkdir()
+
+    try:
+        with pytest.raises(ValueError, match="requires at least one supported file"):
+            runtime.coordinator.submit_import(ImportRequest(path=str(empty_folder)))
+    finally:
+        runtime.shutdown()

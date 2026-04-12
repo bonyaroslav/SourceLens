@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  AskResponseDto,
+  AskSourceRequest,
   ImportJobDto,
   ImportSourceRequest,
   ImportSubmissionDto,
@@ -28,5 +30,9 @@ export class WorkspaceApiService {
 
   getImportJob(jobId: string): Observable<ImportJobDto> {
     return this.http.get<ImportJobDto>(`${this.baseUrl}/import-jobs/${jobId}`);
+  }
+
+  askSource(sourceId: string, request: AskSourceRequest): Observable<AskResponseDto> {
+    return this.http.post<AskResponseDto>(`${this.baseUrl}/sources/${sourceId}/ask`, request);
   }
 }

@@ -2,10 +2,10 @@
   <header class="workspace-header">
     <div class="workspace-header__intro">
       <span class="eyebrow">Source Lens MVP</span>
-      <h1>Balanced Canvas workspace</h1>
+      <h1>Grounded answer workspace</h1>
       <p>
-        The frontend now reads the real source catalog and queues real local imports. Asking and
-        evidence rendering stay visible, but remain intentionally deferred to Phase 2.
+        The frontend now reads the real source catalog, queues local imports, and asks the active
+        source for grounded answers with visible evidence.
       </p>
     </div>
   </header>
@@ -44,11 +44,21 @@
         [activeSourceName]="activeSourceName()"
         [canAsk]="canAsk()"
         [disabledReason]="askDisabledReason()"
+        [submitting]="askSubmitting()"
+        [error]="askError()"
+        [result]="askResult()"
+        (submitAsk)="onSubmitAsk($event)"
       ></app-ask-panel>
     </section>
 
     <aside class="surface-panel evidence-panel">
-      <app-evidence-panel [activeSource]="activeSource()"></app-evidence-panel>
+      <app-evidence-panel
+        [activeSource]="activeSource()"
+        [submitting]="askSubmitting()"
+        [result]="askResult()"
+        [evidenceItems]="evidenceItems()"
+        [hasInsufficientEvidence]="hasInsufficientEvidence()"
+      ></app-evidence-panel>
     </aside>
   </main>
 </div>

@@ -2,6 +2,8 @@ import { createSelector } from '@ngrx/store';
 
 import {
   toActiveSourceViewModel,
+  toAskResultViewModel,
+  toEvidenceItemViewModel,
   toImportPanelViewModel,
   toSourceListItemViewModel,
   toSourceStatusMeta
@@ -53,6 +55,29 @@ export const selectCanAsk = createSelector(
   (source) => source?.import_status === 'completed'
 );
 
+export const selectAskSubmitting = createSelector(
+  workspaceFeature.selectAsk,
+  (askState) => askState.submitting
+);
+
+export const selectAskError = createSelector(
+  workspaceFeature.selectAsk,
+  (askState) => askState.error
+);
+
+export const selectAskResult = createSelector(workspaceFeature.selectAsk, (askState) =>
+  askState.result ? toAskResultViewModel(askState.result) : null
+);
+
+export const selectEvidenceItems = createSelector(workspaceFeature.selectAsk, (askState) =>
+  askState.result?.evidence.map(toEvidenceItemViewModel) ?? []
+);
+
+export const selectHasInsufficientEvidence = createSelector(
+  workspaceFeature.selectAsk,
+  (askState) => askState.result?.grounding_status === 'insufficient_evidence'
+);
+
 export const selectAskDisabledReason = createSelector(
   selectActiveSource,
   selectCanAsk,
@@ -65,6 +90,6 @@ export const selectAskDisabledReason = createSelector(
       return `This source is ${toSourceStatusMeta(source.import_status).label.toLowerCase()}. Ask stays disabled until the import completes.`;
     }
 
-    return 'This source is ready. Asking and evidence rendering land in Phase 2.';
+    return 'This source is ready. Ask a focused question to retrieve a grounded answer and visible evidence.';
   }
 );

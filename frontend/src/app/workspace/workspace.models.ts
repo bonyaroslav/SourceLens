@@ -39,3 +39,19 @@ export interface ImportPanelViewModel {
   jobId: string | null;
   sourceId: string | null;
 }
+
+export interface AskResultViewModel {
+  sourceId: string;
+  question: string;
+  answer: string;
+  groundingStatus: string;
+  groundingLabel: string;
+  groundingSeverity: TagSeverity;
+}
+
+export interface EvidenceItemViewModel {
+  chunkId: string;
+  chunkIndex: number;
+  text: string;
+  score: number;
+}

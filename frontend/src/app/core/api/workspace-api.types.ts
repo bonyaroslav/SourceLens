@@ -28,3 +28,22 @@ export interface ImportJobDto {
   finished_at: string | null;
   error_message: string | null;
 }
+
+export interface AskSourceRequest {
+  question: string;
+}
+
+export interface EvidenceDto {
+  chunk_id: string;
+  chunk_index: number;
+  text: string;
+  score: number;
+}
+
+export interface AskResponseDto {
+  source_id: string;
+  question: string;
+  answer: string;
+  grounding_status: string;
+  evidence: EvidenceDto[];
+}

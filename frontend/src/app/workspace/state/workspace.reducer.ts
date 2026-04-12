@@ -2,7 +2,7 @@ import { createFeature, createReducer, on } from '@ngrx/store';
 
 import { SourceDto } from '../../core/api/workspace-api.types';
 import { workspaceActions } from './workspace.actions';
-import { WorkspaceState, initialWorkspaceState } from './workspace.state';
+import { AskState, WorkspaceState, initialWorkspaceState } from './workspace.state';
 
 export const workspaceFeature = createFeature({
   name: 'workspace',
@@ -16,20 +16,25 @@ export const workspaceFeature = createFeature({
         error: null
       }
     })),
-    on(workspaceActions.loadSourcesSuccess, (state, { sources }): WorkspaceState => ({
-      ...state,
-      sources: {
-        items: sources,
-        loading: false,
-        loaded: true,
-        error: null
-      },
-      activeSourceId: reconcileActiveSourceId(
+    on(workspaceActions.loadSourcesSuccess, (state, { sources }): WorkspaceState => {
+      const nextActiveSourceId = reconcileActiveSourceId(
         state.activeSourceId,
         state.import.activeSubmission?.source_id ?? null,
         sources
-      )
-    })),
+      );
+
+      return {
+        ...state,
+        sources: {
+          items: sources,
+          loading: false,
+          loaded: true,
+          error: null
+        },
+        activeSourceId: nextActiveSourceId,
+        ask: nextActiveSourceId !== state.activeSourceId ? resetAskState(state.ask) : state.ask
+      };
+    }),
     on(workspaceActions.loadSourcesFailure, (state, { error }): WorkspaceState => ({
       ...state,
       sources: {
@@ -41,7 +46,8 @@ export const workspaceFeature = createFeature({
     })),
     on(workspaceActions.setActiveSource, (state, { sourceId }): WorkspaceState => ({
       ...state,
-      activeSourceId: sourceId
+      activeSourceId: sourceId,
+      ask: resetAskState(state.ask)
     })),
     on(workspaceActions.submitImport, (state): WorkspaceState => ({
       ...state,
@@ -59,7 +65,8 @@ export const workspaceFeature = createFeature({
         error: null,
         activeSubmission: submission,
         activeJob: null
-      }
+      },
+      ask: resetAskState(state.ask)
     })),
     on(workspaceActions.submitImportFailure, (state, { error }): WorkspaceState => ({
       ...state,
@@ -94,9 +101,42 @@ export const workspaceFeature = createFeature({
         ...state.import,
         error
       }
+    })),
+    on(workspaceActions.submitAsk, (state): WorkspaceState => ({
+      ...state,
+      ask: {
+        submitting: true,
+        error: null,
+        result: null
+      }
+    })),
+    on(workspaceActions.submitAskSuccess, (state, { result }): WorkspaceState => ({
+      ...state,
+      ask: {
+        submitting: false,
+        error: null,
+        result
+      }
+    })),
+    on(workspaceActions.submitAskFailure, (state, { error }): WorkspaceState => ({
+      ...state,
+      ask: {
+        submitting: false,
+        error,
+        result: null
+      }
     }))
   )
 });
+
+function resetAskState(currentState: AskState): AskState {
+  return {
+    ...currentState,
+    submitting: false,
+    error: null,
+    result: null
+  };
+}
 
 function reconcileActiveSourceId(
   currentActiveSourceId: string | null,

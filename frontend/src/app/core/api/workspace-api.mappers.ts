@@ -1,6 +1,14 @@
-import { ImportJobDto, ImportSubmissionDto, SourceDto } from './workspace-api.types';
+import {
+  AskResponseDto,
+  EvidenceDto,
+  ImportJobDto,
+  ImportSubmissionDto,
+  SourceDto
+} from './workspace-api.types';
 import {
   ActiveSourceViewModel,
+  AskResultViewModel,
+  EvidenceItemViewModel,
   ImportPanelViewModel,
   SourceListItemViewModel,
   TagSeverity
@@ -21,6 +29,11 @@ const SOURCE_STATUS_META: Record<string, StatusMeta> = {
   running: { label: 'Indexing', severity: 'info' },
   completed: { label: 'Ready', severity: 'success' },
   failed: { label: 'Failed', severity: 'danger' }
+};
+
+const GROUNDING_STATUS_META: Record<string, StatusMeta> = {
+  grounded: { label: 'Grounded', severity: 'success' },
+  insufficient_evidence: { label: 'Insufficient evidence', severity: 'warn' }
 };
 
 export function toSourceListItemViewModel(source: SourceDto): SourceListItemViewModel {
@@ -86,6 +99,32 @@ export function toSourceTypeLabel(sourceType: string): string {
 
 export function toSourceStatusMeta(status: string): StatusMeta {
   return SOURCE_STATUS_META[status] ?? { label: status, severity: 'secondary' };
+}
+
+export function toAskResultViewModel(result: AskResponseDto): AskResultViewModel {
+  const grounding = toGroundingStatusMeta(result.grounding_status);
+
+  return {
+    sourceId: result.source_id,
+    question: result.question,
+    answer: result.answer,
+    groundingStatus: result.grounding_status,
+    groundingLabel: grounding.label,
+    groundingSeverity: grounding.severity
+  };
+}
+
+export function toEvidenceItemViewModel(item: EvidenceDto): EvidenceItemViewModel {
+  return {
+    chunkId: item.chunk_id,
+    chunkIndex: item.chunk_index,
+    text: item.text,
+    score: item.score
+  };
+}
+
+export function toGroundingStatusMeta(status: string): StatusMeta {
+  return GROUNDING_STATUS_META[status] ?? { label: status.replace(/_/g, ' '), severity: 'info' };
 }
 
 export function formatDateTime(value: string): string {

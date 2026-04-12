@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { TagModule } from 'primeng/tag';
 
-import { ActiveSourceViewModel } from '../workspace.models';
+import {
+  ActiveSourceViewModel,
+  AskResultViewModel,
+  EvidenceItemViewModel
+} from '../workspace.models';
 
 @Component({
   selector: 'app-evidence-panel',
@@ -45,13 +49,43 @@ import { ActiveSourceViewModel } from '../workspace.models';
 
       <p class="detail-note">{{ activeSource.description }}</p>
 
-      <div class="evidence-placeholder">
-        <h3>Evidence panel stays quiet in Phase 1</h3>
-        <p>
-          Import status and source metadata are real now. Retrieved evidence snippets appear after
-          the ask flow is wired in Phase 2.
-        </p>
-      </div>
+      @if (submitting) {
+        <div class="evidence-placeholder">
+          <h3>Retrieving evidence</h3>
+          <p>The latest ask request is in flight for this source.</p>
+        </div>
+      } @else if (!result) {
+        <div class="evidence-placeholder">
+          <h3>No answer yet</h3>
+          <p>Ask the active source to render evidence snippets in this panel.</p>
+        </div>
+      } @else if (hasInsufficientEvidence) {
+        <div class="evidence-placeholder">
+          <h3>Insufficient evidence</h3>
+          <p>The ask request completed, but the backend did not return supporting snippets.</p>
+        </div>
+      } @else if (evidenceItems.length > 0) {
+        <div class="evidence-list">
+          @for (evidence of evidenceItems; track evidence.chunkId) {
+            <article class="evidence-item">
+              <div class="evidence-item__meta">
+                <div>
+                  <h3>Chunk {{ evidence.chunkIndex }}</h3>
+                  <p>{{ result.groundingLabel }}</p>
+                </div>
+                <span class="evidence-score">Score {{ evidence.score }}</span>
+              </div>
+
+              <p>{{ evidence.text }}</p>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="evidence-placeholder">
+          <h3>No evidence returned</h3>
+          <p>The latest answer completed without evidence snippets.</p>
+        </div>
+      }
     } @else {
       <p class="panel-empty">
         No active source is loaded yet. Import a source or wait for the initial catalog request to
@@ -63,4 +97,8 @@ import { ActiveSourceViewModel } from '../workspace.models';
 })
 export class EvidencePanelComponent {
   @Input() activeSource: ActiveSourceViewModel | null = null;
+  @Input() submitting = false;
+  @Input() result: AskResultViewModel | null = null;
+  @Input() evidenceItems: EvidenceItemViewModel[] = [];
+  @Input() hasInsufficientEvidence = false;
 }

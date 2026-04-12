@@ -16,8 +16,13 @@ import { SourceListComponent } from './source-list.component';
 import { workspaceActions } from '../state/workspace.actions';
 import {
   selectActiveSourceViewModel,
+  selectAskError,
   selectAskDisabledReason,
+  selectAskResult,
+  selectAskSubmitting,
   selectCanAsk,
+  selectEvidenceItems,
+  selectHasInsufficientEvidence,
   selectImportPanelViewModel,
   selectSourceListItems,
   selectSourcesError,
@@ -41,6 +46,11 @@ export class WorkspaceShellComponent implements OnInit {
   readonly importPanel = this.store.selectSignal(selectImportPanelViewModel);
   readonly canAsk = this.store.selectSignal(selectCanAsk);
   readonly askDisabledReason = this.store.selectSignal(selectAskDisabledReason);
+  readonly askSubmitting = this.store.selectSignal(selectAskSubmitting);
+  readonly askError = this.store.selectSignal(selectAskError);
+  readonly askResult = this.store.selectSignal(selectAskResult);
+  readonly evidenceItems = this.store.selectSignal(selectEvidenceItems);
+  readonly hasInsufficientEvidence = this.store.selectSignal(selectHasInsufficientEvidence);
   readonly activeSourceId = computed(() => this.activeSource()?.id ?? null);
   readonly sourceCountLabel = computed(() => `${this.sources().length} sources`);
   readonly activeSourceName = computed(
@@ -57,5 +67,14 @@ export class WorkspaceShellComponent implements OnInit {
 
   onSubmitImport(request: ImportSourceRequest): void {
     this.store.dispatch(workspaceActions.submitImport({ request }));
+  }
+
+  onSubmitAsk(question: string): void {
+    const sourceId = this.activeSourceId();
+    if (!sourceId) {
+      return;
+    }
+
+    this.store.dispatch(workspaceActions.submitAsk({ sourceId, question }));
   }
 }

@@ -1,6 +1,7 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 
 import {
+  AskResponseDto,
   ImportJobDto,
   ImportSourceRequest,
   ImportSubmissionDto,
@@ -20,6 +21,9 @@ export const workspaceActions = createActionGroup({
     submitImportFailure: props<{ error: string }>(),
     pollImportJob: props<{ jobId: string }>(),
     pollImportJobSuccess: props<{ job: ImportJobDto }>(),
-    pollImportJobFailure: props<{ error: string }>()
+    pollImportJobFailure: props<{ error: string }>(),
+    submitAsk: props<{ sourceId: string; question: string }>(),
+    submitAskSuccess: props<{ result: AskResponseDto }>(),
+    submitAskFailure: props<{ error: string }>()
   }
 });

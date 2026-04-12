@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { EMPTY, concat, of, timer } from 'rxjs';
-import { catchError, expand, map, switchMap } from 'rxjs/operators';
+import { catchError, exhaustMap, expand, map, switchMap } from 'rxjs/operators';
 
 import { WorkspaceApiService } from '../../core/api/workspace-api.service';
 import { ImportJobDto } from '../../core/api/workspace-api.types';
@@ -83,6 +83,20 @@ export class WorkspaceEffects {
       switchMap(({ job }) => (isTerminalJob(job) ? of(workspaceActions.loadSources()) : EMPTY))
     )
   );
+
+  readonly submitAsk$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(workspaceActions.submitAsk),
+      exhaustMap(({ sourceId, question }) =>
+        this.workspaceApi.askSource(sourceId, { question }).pipe(
+          map((result) => workspaceActions.submitAskSuccess({ result })),
+          catchError((error: unknown) =>
+            of(workspaceActions.submitAskFailure({ error: getAskErrorMessage(error) }))
+          )
+        )
+      )
+    )
+  );
 }
 
 function isTerminalJob(job: ImportJobDto): boolean {
@@ -106,4 +120,34 @@ function getErrorMessage(error: unknown): string {
   }
 
   return 'Unexpected request failure.';
+}
+
+function getAskErrorMessage(error: unknown): string {
+  if (error instanceof HttpErrorResponse) {
+    switch (error.status) {
+      case 400:
+        return 'Enter a valid question before asking the source.';
+      case 404:
+        return 'The selected source could not be found. Refresh the catalog and choose another source.';
+      case 409:
+        return 'This source is not ready yet. Wait for indexing to finish before asking.';
+      default: {
+        const detail =
+          typeof error.error === 'object' &&
+          error.error !== null &&
+          'detail' in error.error &&
+          typeof error.error.detail === 'string'
+            ? error.error.detail
+            : error.message;
+
+        return detail ? `The ask request failed. ${detail}` : 'The ask request failed.';
+      }
+    }
+  }
+
+  if (error instanceof Error) {
+    return `The ask request failed. ${error.message}`;
+  }
+
+  return 'The ask request failed.';
 }

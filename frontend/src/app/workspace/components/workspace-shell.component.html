@@ -1,0 +1,54 @@
+<div class="source-lens-app">
+  <header class="workspace-header">
+    <div class="workspace-header__intro">
+      <span class="eyebrow">Source Lens MVP</span>
+      <h1>Balanced Canvas workspace</h1>
+      <p>
+        The frontend now reads the real source catalog and queues real local imports. Asking and
+        evidence rendering stay visible, but remain intentionally deferred to Phase 2.
+      </p>
+    </div>
+  </header>
+
+  <main class="workspace-grid">
+    <section class="surface-panel sources-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="panel-kicker">Import + sources</span>
+          <h2>Choose the working context</h2>
+        </div>
+        <span class="panel-meta">{{ sourceCountLabel() }}</span>
+      </div>
+
+      <app-import-form
+        [importState]="importPanel()"
+        (submitImport)="onSubmitImport($event)"
+      ></app-import-form>
+
+      <div class="list-note">
+        <span>One active source drives the workspace in this MVP slice.</span>
+        <span>The source list now reflects real backend import status.</span>
+      </div>
+
+      <app-source-list
+        [sources]="sources()"
+        [activeSourceId]="activeSourceId()"
+        [loading]="sourcesLoading()"
+        [error]="sourcesError()"
+        (selectSource)="onSelectSource($event)"
+      ></app-source-list>
+    </section>
+
+    <section class="surface-panel answer-panel">
+      <app-ask-panel
+        [activeSourceName]="activeSourceName()"
+        [canAsk]="canAsk()"
+        [disabledReason]="askDisabledReason()"
+      ></app-ask-panel>
+    </section>
+
+    <aside class="surface-panel evidence-panel">
+      <app-evidence-panel [activeSource]="activeSource()"></app-evidence-panel>
+    </aside>
+  </main>
+</div>

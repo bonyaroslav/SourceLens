@@ -1,8 +1,17 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import {
+  ApplicationConfig,
+  provideBrowserGlobalErrorListeners
+} from '@angular/core';
+import { provideEffects } from '@ngrx/effects';
+import { provideState, provideStore } from '@ngrx/store';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
+
+import { WorkspaceEffects } from './workspace/state/workspace.effects';
+import { workspaceFeature } from './workspace/state/workspace.reducer';
 
 const SourceLensPreset = definePreset(Aura, {
   semantic: {
@@ -112,7 +121,11 @@ const SourceLensPreset = definePreset(Aura, {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideHttpClient(),
     provideAnimationsAsync(),
+    provideStore(),
+    provideState(workspaceFeature),
+    provideEffects(WorkspaceEffects),
     providePrimeNG({
       ripple: false,
       inputVariant: 'filled',

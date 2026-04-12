@@ -43,7 +43,8 @@
 .panel-heading h2,
 .answer-shell__header h2,
 .evidence-item__meta h3,
-.source-row__headline h3 {
+.source-row__headline h3,
+.evidence-placeholder h3 {
   font-family: 'Space Grotesk', 'Aptos Display', 'Segoe UI', sans-serif;
 }
 
@@ -145,15 +146,50 @@
   padding: 0.9rem 1rem;
 }
 
+.import-form {
+  gap: 1rem;
+}
+
+.field-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field-block {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.field-block input,
+.field-block textarea {
+  width: 100%;
+}
+
 .import-strip p,
 .list-note,
 .question-shell__footer p,
 .detail-note,
 .source-row__headline p,
-.evidence-item__meta p {
+.evidence-item__meta p,
+.panel-empty,
+.form-feedback,
+.import-job-status p,
+.evidence-placeholder p,
+.source-row__description {
   margin: 0;
   color: var(--sl-muted-text);
   line-height: 1.55;
+}
+
+.panel-empty,
+.form-feedback {
+  padding: 0.15rem 0.1rem;
+}
+
+.panel-empty.is-error,
+.form-feedback.is-error {
+  color: #fecaca;
 }
 
 .list-note {
@@ -172,8 +208,8 @@
 
 .source-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.7rem;
   align-items: start;
   border: 1px solid var(--source-row-border);
   border-radius: var(--source-row-radius);
@@ -211,6 +247,10 @@
   display: grid;
   gap: 0.6rem;
   min-width: 0;
+}
+
+.source-row__description {
+  font-size: 0.88rem;
 }
 
 .source-row__headline h3,
@@ -253,6 +293,24 @@
 .active-pill {
   background: rgb(139 92 246 / 0.16);
   color: var(--sl-text);
+}
+
+.import-job-status,
+.evidence-placeholder {
+  display: grid;
+  gap: 0.8rem;
+  border: 1px solid rgb(63 63 70 / 0.55);
+  border-radius: calc(var(--panel-radius) - 0.25rem);
+  background: rgb(24 24 27 / 0.22);
+  padding: 1rem;
+}
+
+.import-job-status__meta,
+.detail-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
 }
 
 .question-shell,
@@ -330,6 +388,11 @@
 
 .detail-note {
   padding-bottom: 0.1rem;
+}
+
+.detail-strip {
+  border-bottom: 1px solid rgb(63 63 70 / 0.35);
+  padding-bottom: 0.7rem;
 }
 
 .evidence-item {
@@ -412,6 +475,7 @@ button.import-button {
     padding: 1rem;
   }
 
+  .field-grid,
   .detail-grid {
     grid-template-columns: 1fr;
   }

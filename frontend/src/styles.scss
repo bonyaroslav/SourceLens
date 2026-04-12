@@ -1,0 +1,64 @@
+@import 'primeicons/primeicons.css';
+
+:root {
+  --sl-background: #09090b;
+  --sl-surface: #18181b;
+  --sl-surface2: #27272a;
+  --sl-border: #3f3f46;
+  --sl-text: #f4f4f5;
+  --sl-muted-text: #a1a1aa;
+  --sl-primary: #8b5cf6;
+  --sl-accent: #22d3ee;
+  --sl-success: #22c55e;
+  --sl-warning: #f59e0b;
+  --sl-error: #ef4444;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgb(139 92 246 / 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgb(34 211 238 / 0.08), transparent 22%),
+    linear-gradient(180deg, #0c0c10 0%, #09090b 100%);
+  color: var(--sl-text);
+  font-family: 'IBM Plex Sans', 'Aptos', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+textarea,
+input {
+  font: inherit;
+}
+
+::selection {
+  background: rgb(139 92 246 / 0.36);
+  color: var(--sl-text);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgb(63 63 70 / 0.88);
+  background-clip: padding-box;
+}

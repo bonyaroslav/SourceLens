@@ -1,0 +1,204 @@
+<div class="source-lens-app">
+  <header class="workspace-header">
+    <div class="workspace-header__intro">
+      <span class="eyebrow">Source Lens MVP</span>
+      <h1>Balanced Canvas workspace</h1>
+      <p>
+        Static Angular + PrimeNG UI. One highlighted source powers the ask flow, while
+        checkboxes stay visible for future multi-source actions.
+      </p>
+    </div>
+  </header>
+
+  <main class="workspace-grid">
+    <section class="surface-panel sources-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="panel-kicker">Import + sources</span>
+          <h2>Choose the working context</h2>
+        </div>
+        <span class="panel-meta">{{ selectedCount() }} checked</span>
+      </div>
+
+      <div class="import-strip">
+        <input
+          #filePicker
+          class="visually-hidden"
+          type="file"
+          (change)="importFile($event)"
+        />
+
+        <button
+          pButton
+          type="button"
+          class="import-button"
+          label="Import local file"
+          icon="pi pi-upload"
+          severity="secondary"
+          [outlined]="true"
+          (click)="filePicker.click()"
+        ></button>
+
+        <p>
+          Fake import only for this stage. Adding a file inserts it into the list and makes it the
+          active source for asking.
+        </p>
+      </div>
+
+      <div class="list-note">
+        <span>Ask uses only the highlighted row.</span>
+        <span>Checkboxes stay visible for future batch actions.</span>
+      </div>
+
+      <div class="source-list">
+        @for (source of sources(); track source.id) {
+          <article
+            class="source-row"
+            [class.is-active]="source.id === activeSource().id"
+            [class.is-selected]="isSelected(source.id)"
+            tabindex="0"
+            (click)="setActiveSource(source.id)"
+            (keydown.enter)="setActiveSource(source.id)"
+            (keydown.space)="setActiveSource(source.id); $event.preventDefault()"
+          >
+            <div class="source-row__check" (click)="$event.stopPropagation()">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isSelected(source.id)"
+                [inputId]="'source-' + source.id"
+                [ariaLabel]="'Select ' + source.name"
+                (ngModelChange)="setSelected(source.id, $event)"
+              />
+            </div>
+
+            <div class="source-row__body">
+              <div class="source-row__headline">
+                <div>
+                  <h3>{{ source.name }}</h3>
+                  <p>{{ source.updatedLabel }} · {{ source.sizeLabel }}</p>
+                </div>
+
+                @if (source.id === activeSource().id) {
+                  <span class="active-pill">Active</span>
+                }
+              </div>
+
+              <div class="source-row__meta">
+                <span class="source-type">{{ source.type }}</span>
+                <p-tag
+                  [value]="statusMeta(source.status).label"
+                  [severity]="statusMeta(source.status).severity"
+                ></p-tag>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="surface-panel answer-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="panel-kicker">Question + answer</span>
+          <h2>Ask the active source</h2>
+        </div>
+        <span class="panel-meta">{{ activeSource().name }}</span>
+      </div>
+
+      <div class="question-shell">
+        <label class="section-label" for="question-box">Question</label>
+        <textarea
+          id="question-box"
+          pTextarea
+          autoResize
+          rows="5"
+          [ngModel]="question()"
+          (ngModelChange)="question.set($event)"
+          placeholder="Ask a focused question about the selected source..."
+        ></textarea>
+
+        <div class="question-shell__footer">
+          <p>
+            One source is assumed to be active for asking at this stage, even while multiple rows
+            can be checked in the list.
+          </p>
+
+          <button
+            pButton
+            type="button"
+            label="Ask source"
+            icon="pi pi-send"
+            iconPos="right"
+            severity="primary"
+            (click)="askQuestion()"
+          ></button>
+        </div>
+      </div>
+
+      <div class="answer-shell">
+        <div class="answer-shell__header">
+          <div>
+            <span class="section-label">Answer</span>
+            <h2>{{ answer().heading }}</h2>
+          </div>
+          <span class="panel-meta">{{ answer().lastAskedLabel }}</span>
+        </div>
+
+        <p class="answer-body">{{ answer().body }}</p>
+
+        <ul class="answer-points">
+          @for (point of answer().takeaways; track point) {
+            <li>{{ point }}</li>
+          }
+        </ul>
+      </div>
+    </section>
+
+    <aside class="surface-panel evidence-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="panel-kicker">Evidence + details</span>
+          <h2>Inspect support beside the answer</h2>
+        </div>
+        <span class="panel-meta">{{ answer().snippets.length }} snippets</span>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Active source</span>
+          <strong>{{ activeSource().name }}</strong>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Type</span>
+          <strong>{{ activeSource().type }}</strong>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Status</span>
+          <strong>{{ statusMeta(activeSource().status).label }}</strong>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Selection</span>
+          <strong>{{ isSelected(activeSource().id) ? 'Checked' : 'Not checked' }}</strong>
+        </div>
+      </div>
+
+      <p class="detail-note">{{ activeSource().detail }}</p>
+
+      <div class="evidence-list">
+        @for (snippet of answer().snippets; track snippet.id) {
+          <article class="evidence-item">
+            <div class="evidence-item__meta">
+              <div>
+                <h3>{{ snippet.title }}</h3>
+                <p>{{ snippet.location }}</p>
+              </div>
+              <span class="evidence-score">{{ snippet.matchLabel }}</span>
+            </div>
+
+            <p>{{ snippet.preview }}</p>
+          </article>
+        }
+      </div>
+    </aside>
+  </main>
+</div>

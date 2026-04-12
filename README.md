@@ -135,7 +135,7 @@ Ask things like:
 ### Next in the MVP slice
 - folder import to complete the backend vertical slice
 - evaluation baseline for grounded and weak-evidence behavior
-- frontend planning only after the backend vertical slice is locked
+- keep the static Angular workspace prototype in `frontend/` design-only until backend wiring is ready
 
 ### Intentionally not overbuilt yet
 - deep crawling
@@ -151,7 +151,7 @@ The MVP is a **sharp vertical slice**: one selected source, one clean retrieval 
 ## Architecture at a glance
 
 ```text
-Future UI
+Angular workspace prototype / future wired UI
    ↓
 Python API
  ├─ source catalog
@@ -178,8 +178,8 @@ Python API
 - **Vector store:** Qdrant local mode
 - **Metadata store:** SQLite via a swappable repository / adapter layer
 - **Workflow:** import → chunk → embed → retrieve → answer
-- **Current milestone:** backend vertical slice only
-- **Next milestone:** Angular source selection and ask UI
+- **Current milestone:** backend vertical slice only, with a static Angular prototype kept separate under `frontend/`
+- **Next milestone:** wire the Angular source selection and ask UI to the backend slice
 
 ### Why this stack
 Because it gets to a real end-to-end prototype fast, stays local-first, and keeps the path open for more controlled enterprise deployment later.

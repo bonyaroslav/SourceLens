@@ -8,7 +8,9 @@ The current milestone is:
 
 - finish the **backend vertical slice**
 - keep the scope **backend-only**
-- defer frontend work to the next milestone
+- defer wired frontend work to the next milestone
+
+A static Angular workspace prototype may exist under `frontend/` for design exploration, but it is not part of this backend milestone's done criteria.
 
 This plan intentionally avoids shipped-history notes, phase retrospectives, and implementation logs.
 
@@ -50,7 +52,7 @@ The backend vertical slice for **Source Lens** includes:
 
 These are deferred until after the backend vertical slice is complete:
 
-- Angular UI
+- Angular UI wiring beyond the static prototype
 - browser upload
 - multi-source querying
 - connector ecosystem

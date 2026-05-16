@@ -133,8 +133,7 @@ Ask things like:
 - answer + evidence snippets
 
 ### Next in the MVP slice
-- folder import to complete the backend vertical slice
-- evaluation baseline for grounded and weak-evidence behavior
+- backend MVP closeout through deterministic verification and doc alignment
 - keep the static Angular workspace prototype in `frontend/` design-only until backend wiring is ready
 
 ### Intentionally not overbuilt yet
@@ -260,6 +259,8 @@ Import source → Parse text → Split into chunks → Create embeddings → Sto
 ---
 
 ## Roadmap direction
+
+These are product-facing milestones after the current backend slice. Some backend prerequisites already exist in the API and local tooling.
 
 - [ ] source catalog MVP
 - [ ] local file/folder import

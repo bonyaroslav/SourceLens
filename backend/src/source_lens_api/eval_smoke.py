@@ -1,16 +1,18 @@
+import argparse
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
 from .application.sources import GROUNDED, INSUFFICIENT_EVIDENCE
-from .config import get_settings
-from .domain.models import ImportJobRecord, SourceRecord, VectorRecord
+from .config import Settings, get_settings
+from .domain.models import SourceRecord
 from .evals.assertions import assert_eval_case
 from .evals.cases import EvalCase
+from .evals.doubles import DeterministicEvalChatClient, DeterministicEvalEmbeddingsClient
 from .infra.ollama.client import OllamaChatClient, OllamaEmbeddingsClient
-from .infra.sqlite.database import connect_sqlite, initialize_metadata_schema
-from .infra.sqlite.repositories import SQLiteImportJobRepository, SQLiteSourceRepository
+from .infra.sqlite.database import metadata_connection
+from .infra.sqlite.repositories import SQLiteSourceRepository
 from .runtime import build_runtime
 
 GOLDEN_CASE = EvalCase(
@@ -28,116 +30,72 @@ WEAK_CASE = EvalCase(
 )
 
 
-def main() -> None:
-    settings = get_settings()
-    runtime = build_runtime(settings=settings)
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Run Source Lens backend eval smoke checks.")
+    parser.add_argument(
+        "--live-deps",
+        action="store_true",
+        help="Also verify live Ollama chat and embedding dependencies.",
+    )
+    args = parser.parse_args(argv)
+    run_eval(get_settings(), include_live_dependency_proof=args.live_deps)
+
+
+def run_eval(
+    settings: Settings,
+    *,
+    include_live_dependency_proof: bool = False,
+) -> None:
+    eval_settings = settings.model_copy(update={"data_dir": settings.data_dir / "eval-smoke"})
+    runtime = build_runtime(
+        settings=eval_settings,
+        chat=None if include_live_dependency_proof else DeterministicEvalChatClient(),
+        embeddings=(
+            None if include_live_dependency_proof else DeterministicEvalEmbeddingsClient()
+        ),
+    )
     runtime.initialize(start_worker=True)
     paths = runtime.paths
-    print(f"eval scaffold ready: {settings.app_name} [{settings.environment}]")
+    print(f"eval scaffold ready: {eval_settings.app_name} [{eval_settings.environment}]")
     print(f"data directory: {paths.data_dir}")
 
-    connection = connect_sqlite(paths.metadata_db_path)
     try:
-        initialize_metadata_schema(connection)
-        source_repository = SQLiteSourceRepository(connection)
-        import_job_repository = SQLiteImportJobRepository(connection)
-
-        timestamp = datetime.now(UTC)
-        source_id = str(uuid4())
-        job_id = str(uuid4())
-        source_record = SourceRecord(
-            id=source_id,
-            name="Phase 2 dependency proof",
-            description="Minimal metadata repository smoke check.",
-            source_type="phase2-smoke",
-            original_path="phase2://smoke-source",
-            snapshot_path="phase2://snapshot",
-            content_hash="phase2-smoke-hash",
-            import_status="completed",
-            created_at=timestamp,
-            updated_at=timestamp,
-        )
-        import_job_record = ImportJobRecord(
-            job_id=job_id,
-            source_id=source_id,
-            status="completed",
-            started_at=timestamp,
-            finished_at=timestamp,
-            error_message=None,
-        )
-
-        source_repository.create(source_record)
-        import_job_repository.create(import_job_record)
-
-        stored_source = source_repository.get_by_id(source_id)
-        stored_job = import_job_repository.get_by_id(job_id)
-        if stored_source is None or stored_job is None:
-            raise RuntimeError("SQLite repository smoke check failed.")
-        if not any(record.id == source_id for record in source_repository.list_all()):
-            raise RuntimeError("SQLite source listing smoke check failed.")
-        catalog_source = runtime.catalog_service.get_source(source_id)
-        if catalog_source.id != source_id:
-            raise RuntimeError("Source catalog smoke check failed.")
-        print("sqlite repository write/read/list: ok")
-
-        embeddings_client = OllamaEmbeddingsClient(
-            base_url=settings.ollama_base_url,
-            model=settings.embedding_model,
-        )
-        embedding = embeddings_client.embed(["Source Lens Phase 2 dependency proof"])[0]
-        if not embedding:
-            raise RuntimeError("Embedding smoke check returned an empty vector.")
-        print(f"ollama embedding: ok ({len(embedding)} dimensions)")
-
-        vector_store = runtime.vector_store
-        vector_store.ensure_collection(len(embedding))
-        point_id = str(uuid4())
-        vector_store.upsert(
-            [
-                VectorRecord(
-                    point_id=point_id,
-                    vector=embedding,
-                    payload={
-                        "source_id": source_id,
-                        "chunk_id": f"{source_id}:0",
-                        "chunk_index": 0,
-                        "text": "Source Lens dependency proof chunk for ask flow smoke testing.",
-                    },
-                )
-            ]
-        )
-        matches = vector_store.query(embedding, limit=1, source_id=source_id)
-        if not matches or matches[0].point_id != point_id:
-            raise RuntimeError("Qdrant similarity query smoke check failed.")
-        print(f"qdrant local insert/query: ok ({matches[0].score:.4f})")
-
-        chat_client = OllamaChatClient(
-            base_url=settings.ollama_base_url,
-            model=settings.chat_model,
-        )
-        chat_response = chat_client.generate(
-            "You are running a deterministic smoke test. "
-            "Reply with exactly SOURCE_LENS_PHASE2_OK and nothing else."
-        )
-        if "SOURCE_LENS_PHASE2_OK" not in chat_response:
-            raise RuntimeError(
-                "Chat smoke check returned an unexpected response: "
-                f"{chat_response!r}"
-            )
-        print("ollama chat: ok")
+        if include_live_dependency_proof:
+            _run_live_dependency_proof(eval_settings)
 
         _run_grounded_eval_case(runtime)
         print(f"eval case {GOLDEN_CASE.name}: ok")
 
-        _run_insufficient_evidence_case(
-            source_repository=source_repository,
-            runtime=runtime,
-            timestamp=timestamp,
-        )
+        _run_insufficient_evidence_case(runtime)
         print(f"eval case {WEAK_CASE.name}: ok")
     finally:
-        connection.close()
         runtime.shutdown()
+
+
+def _run_live_dependency_proof(settings: Settings) -> None:
+    embeddings_client = OllamaEmbeddingsClient(
+        base_url=settings.ollama_base_url,
+        model=settings.embedding_model,
+    )
+    embedding = embeddings_client.embed(["Source Lens Phase 2 dependency proof"])[0]
+    if not embedding:
+        raise RuntimeError("Embedding smoke check returned an empty vector.")
+    print(f"ollama embedding: ok ({len(embedding)} dimensions)")
+
+    chat_client = OllamaChatClient(
+        base_url=settings.ollama_base_url,
+        model=settings.chat_model,
+    )
+    chat_response = chat_client.generate(
+        "You are running a deterministic smoke test. "
+        "Reply with exactly SOURCE_LENS_PHASE2_OK and nothing else."
+    )
+    if "SOURCE_LENS_PHASE2_OK" not in chat_response:
+        raise RuntimeError(
+            "Chat smoke check returned an unexpected response: "
+            f"{chat_response!r}"
+        )
+    print("ollama chat: ok")
 
 
 def _run_grounded_eval_case(runtime) -> None:
@@ -165,27 +123,24 @@ def _run_grounded_eval_case(runtime) -> None:
         raise AssertionError(f"[{GOLDEN_CASE.name}] evidence included another source")
 
 
-def _run_insufficient_evidence_case(
-    *,
-    source_repository: SQLiteSourceRepository,
-    runtime,
-    timestamp: datetime,
-) -> None:
+def _run_insufficient_evidence_case(runtime) -> None:
     empty_source_id = str(uuid4())
-    source_repository.create(
-        SourceRecord(
-            id=empty_source_id,
-            name="Eval weak evidence source",
-            description="No vectors are stored for this source.",
-            source_type="eval-empty",
-            original_path="eval://weak-source",
-            snapshot_path="eval://weak-snapshot",
-            content_hash="eval-weak-hash",
-            import_status="completed",
-            created_at=timestamp,
-            updated_at=timestamp,
+    timestamp = datetime.now(UTC)
+    with metadata_connection(runtime.paths.metadata_db_path) as connection:
+        SQLiteSourceRepository(connection).create(
+            SourceRecord(
+                id=empty_source_id,
+                name="Eval weak evidence source",
+                description="No vectors are stored for this source.",
+                source_type="eval-empty",
+                original_path="eval://weak-source",
+                snapshot_path="eval://weak-snapshot",
+                content_hash="eval-weak-hash",
+                import_status="completed",
+                created_at=timestamp,
+                updated_at=timestamp,
+            )
         )
-    )
     result = runtime.ask_service.ask(
         source_id=empty_source_id,
         question=WEAK_CASE.question,

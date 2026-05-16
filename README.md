@@ -198,6 +198,7 @@ Windows-first commands from the repo root:
 - `.\tools\lint.ps1`
 - `.\tools\typecheck.ps1`
 - `.\tools\eval.ps1`
+- `.\tools\live-deps.ps1`
 
 Current runtime surface:
 
@@ -209,6 +210,8 @@ Current runtime surface:
 - `POST /sources/{source_id}/ask`
 
 `setup.ps1` bootstraps a repo-local helper environment for `uv` under `.tools\bootstrap` and then syncs the backend project.
+
+`eval.ps1` is the deterministic backend MVP eval gate. `live-deps.ps1` is the separate opt-in Ollama dependency proof command.
 
 ---
 

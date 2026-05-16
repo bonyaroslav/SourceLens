@@ -32,9 +32,10 @@ Windows-first commands from the repo root:
 - `.\tools\lint.ps1`
 - `.\tools\typecheck.ps1`
 - `.\tools\eval.ps1`
+- `.\tools\live-deps.ps1`
 
 `setup.ps1` bootstraps a repo-local helper environment for `uv` under `.tools\bootstrap` and then syncs the backend project dependencies.
 
 `bootstrap-models.ps1` pulls the pinned Phase 2 Ollama chat and embedding models through the local Ollama HTTP API.
 
-`eval.ps1` runs the grounded and insufficient-evidence backend eval cases with deterministic eval model doubles by default. Use `uv run --project backend python -m source_lens_api.eval_smoke --live-deps` when you also want live Ollama dependency proof.
+`eval.ps1` is the deterministic backend MVP eval gate. `live-deps.ps1` is the separate opt-in Ollama dependency proof command for chat and embeddings.

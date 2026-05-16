@@ -1,4 +1,3 @@
-import argparse
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -10,7 +9,6 @@ from .domain.models import SourceRecord
 from .evals.assertions import assert_eval_case
 from .evals.cases import EvalCase
 from .evals.doubles import DeterministicEvalChatClient, DeterministicEvalEmbeddingsClient
-from .infra.ollama.client import OllamaChatClient, OllamaEmbeddingsClient
 from .infra.sqlite.database import metadata_connection
 from .infra.sqlite.repositories import SQLiteSourceRepository
 from .runtime import build_runtime
@@ -31,28 +29,18 @@ WEAK_CASE = EvalCase(
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Run Source Lens backend eval smoke checks.")
-    parser.add_argument(
-        "--live-deps",
-        action="store_true",
-        help="Also verify live Ollama chat and embedding dependencies.",
-    )
-    args = parser.parse_args(argv)
-    run_eval(get_settings(), include_live_dependency_proof=args.live_deps)
+    del argv
+    run_eval(get_settings())
 
 
 def run_eval(
     settings: Settings,
-    *,
-    include_live_dependency_proof: bool = False,
 ) -> None:
     eval_settings = settings.model_copy(update={"data_dir": settings.data_dir / "eval-smoke"})
     runtime = build_runtime(
         settings=eval_settings,
-        chat=None if include_live_dependency_proof else DeterministicEvalChatClient(),
-        embeddings=(
-            None if include_live_dependency_proof else DeterministicEvalEmbeddingsClient()
-        ),
+        chat=DeterministicEvalChatClient(),
+        embeddings=DeterministicEvalEmbeddingsClient(),
     )
     runtime.initialize(start_worker=True)
     paths = runtime.paths
@@ -60,9 +48,6 @@ def run_eval(
     print(f"data directory: {paths.data_dir}")
 
     try:
-        if include_live_dependency_proof:
-            _run_live_dependency_proof(eval_settings)
-
         _run_grounded_eval_case(runtime)
         print(f"eval case {GOLDEN_CASE.name}: ok")
 
@@ -70,32 +55,6 @@ def run_eval(
         print(f"eval case {WEAK_CASE.name}: ok")
     finally:
         runtime.shutdown()
-
-
-def _run_live_dependency_proof(settings: Settings) -> None:
-    embeddings_client = OllamaEmbeddingsClient(
-        base_url=settings.ollama_base_url,
-        model=settings.embedding_model,
-    )
-    embedding = embeddings_client.embed(["Source Lens Phase 2 dependency proof"])[0]
-    if not embedding:
-        raise RuntimeError("Embedding smoke check returned an empty vector.")
-    print(f"ollama embedding: ok ({len(embedding)} dimensions)")
-
-    chat_client = OllamaChatClient(
-        base_url=settings.ollama_base_url,
-        model=settings.chat_model,
-    )
-    chat_response = chat_client.generate(
-        "You are running a deterministic smoke test. "
-        "Reply with exactly SOURCE_LENS_PHASE2_OK and nothing else."
-    )
-    if "SOURCE_LENS_PHASE2_OK" not in chat_response:
-        raise RuntimeError(
-            "Chat smoke check returned an unexpected response: "
-            f"{chat_response!r}"
-        )
-    print("ollama chat: ok")
 
 
 def _run_grounded_eval_case(runtime) -> None:

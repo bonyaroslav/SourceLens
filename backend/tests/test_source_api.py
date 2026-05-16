@@ -61,8 +61,81 @@ def test_source_catalog_and_ask_flow_returns_grounded_answer_with_evidence(
     assert ask_payload["evidence"]
     assert all(item["chunk_id"] for item in ask_payload["evidence"])
     assert all("text" in item and item["text"] for item in ask_payload["evidence"])
+    assert all(item["relative_path"] == "beta.txt" for item in ask_payload["evidence"])
     assert all("origin_path" not in item for item in ask_payload["evidence"])
+    assert all("snapshot_path" not in item for item in ask_payload["evidence"])
     assert len(chat.prompts) == 1
+
+
+def test_folder_source_ask_evidence_includes_relative_file_traceability(
+    tmp_path: Path,
+) -> None:
+    chat = FakeChatClient(response="Folder answer from fake chat.")
+    runtime = build_test_runtime(tmp_path, chat=chat)
+    source_folder = tmp_path / "docs"
+    write_text_fixture(
+        source_folder / "guide.md",
+        "# Guide\n\nAlpha onboarding evidence.",
+    )
+    write_text_fixture(
+        source_folder / "nested" / "policy.txt",
+        "Retention policy evidence says folders keep relative traceability.",
+    )
+    client = TestClient(create_app(runtime=runtime, start_worker=True))
+
+    with client:
+        import_response = client.post("/sources/import", json={"path": str(source_folder)})
+        import_payload = import_response.json()
+        wait_for_job_status(runtime, import_payload["job_id"], "completed")
+        ask_response = client.post(
+            f"/sources/{import_payload['source_id']}/ask",
+            json={"question": "What does the policy evidence say about relative traceability?"},
+        )
+
+    assert import_response.status_code == 202
+    assert ask_response.status_code == 200
+    ask_payload = ask_response.json()
+    assert ask_payload["grounding_status"] == "grounded"
+    assert {item["relative_path"] for item in ask_payload["evidence"]} == {
+        "guide.md",
+        "nested/policy.txt",
+    }
+    assert all("origin_path" not in item for item in ask_payload["evidence"])
+    assert all("snapshot_path" not in item for item in ask_payload["evidence"])
+
+
+def test_folder_source_responses_do_not_expose_absolute_snapshot_paths(
+    tmp_path: Path,
+) -> None:
+    runtime = build_test_runtime(tmp_path)
+    source_folder = tmp_path / "private-docs"
+    write_text_fixture(source_folder / "policy.txt", "Policy evidence mentions privacy.")
+    client = TestClient(create_app(runtime=runtime, start_worker=True))
+
+    with client:
+        import_response = client.post("/sources/import", json={"path": str(source_folder)})
+        import_payload = import_response.json()
+        wait_for_job_status(runtime, import_payload["job_id"], "completed")
+        source_response = client.get(f"/sources/{import_payload['source_id']}")
+        ask_response = client.post(
+            f"/sources/{import_payload['source_id']}/ask",
+            json={"question": "What does the policy evidence mention about privacy?"},
+        )
+
+    snapshot_root = runtime.paths.snapshots_dir / import_payload["source_id"]
+    source_payload_text = source_response.text
+    ask_payload_text = ask_response.text
+
+    assert source_response.status_code == 200
+    assert ask_response.status_code == 200
+    assert str(snapshot_root) not in source_payload_text
+    assert str(snapshot_root) not in ask_payload_text
+    assert str(source_folder) not in source_payload_text
+    assert str(source_folder) not in ask_payload_text
+    assert "snapshot_path" not in source_response.json()
+    assert "original_path" not in source_response.json()
+    assert all("snapshot_path" not in item for item in ask_response.json()["evidence"])
+    assert all("origin_path" not in item for item in ask_response.json()["evidence"])
 
 
 def test_source_detail_and_ask_return_404_for_missing_source(tmp_path: Path) -> None:

@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from ..domain.models import SourceRecord, VectorMatch
 from ..domain.ports.chat import ChatPort
@@ -49,6 +49,7 @@ class EvidenceView:
     chunk_index: int
     text: str
     score: float
+    relative_path: str | None = None
 
 
 @dataclass(frozen=True)
@@ -174,6 +175,7 @@ class AskService:
                     chunk_index=chunk_index,
                     text=text.strip(),
                     score=float(match.score),
+                    relative_path=_public_relative_path(match.payload.get("relative_path")),
                 )
             )
         return evidence
@@ -202,3 +204,23 @@ class AskService:
             f"Evidence:\n{evidence_blocks}\n\n"
             "Answer:"
         )
+
+
+def _public_relative_path(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+
+    normalized = value.strip().replace("\\", "/")
+    if not normalized:
+        return None
+
+    posix_path = PurePosixPath(normalized)
+    windows_path = PureWindowsPath(normalized)
+    if posix_path.is_absolute() or windows_path.is_absolute():
+        return None
+    if normalized.startswith("~") or ":" in normalized:
+        return None
+    if any(part in {"", ".", ".."} for part in posix_path.parts):
+        return None
+
+    return normalized

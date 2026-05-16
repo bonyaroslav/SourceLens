@@ -54,6 +54,7 @@ class EvidenceResponse(BaseModel):
     chunk_index: int
     text: str
     score: float
+    relative_path: str | None = None
 
 
 class AskResponse(BaseModel):
@@ -180,6 +181,7 @@ def create_app(
                     chunk_index=item.chunk_index,
                     text=item.text,
                     score=item.score,
+                    relative_path=item.relative_path,
                 )
                 for item in result.evidence
             ],

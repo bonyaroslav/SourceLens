@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from source_lens_api.domain.models import VectorRecord
 from source_lens_api.main import create_app
 
 from .support import (
@@ -111,6 +112,45 @@ def test_ask_returns_insufficient_evidence_without_calling_chat(tmp_path: Path) 
     assert ask_response.json() == {
         "source_id": "source-empty",
         "question": "What evidence exists?",
+        "answer": "I don't have enough evidence in this source to answer that question.",
+        "grounding_status": "insufficient_evidence",
+        "evidence": [],
+    }
+    assert chat.prompts == []
+
+
+def test_ask_returns_insufficient_evidence_for_unrelated_match_without_calling_chat(
+    tmp_path: Path,
+) -> None:
+    chat = FakeChatClient(response="This should not be used.")
+    runtime = build_test_runtime(tmp_path, chat=chat)
+    runtime.vector_store.upsert(
+        [
+            VectorRecord(
+                point_id="point-unrelated",
+                vector=[1.0, 1.0, 1.0],
+                payload={
+                    "source_id": "source-weak",
+                    "chunk_id": "source-weak:0",
+                    "chunk_index": 0,
+                    "text": "Beta paragraph with import details and retrieval context.",
+                },
+            )
+        ]
+    )
+    client = TestClient(create_app(runtime=runtime, start_worker=False))
+
+    with client:
+        create_source_record(runtime, source_id="source-weak", import_status="completed")
+        ask_response = client.post(
+            "/sources/source-weak/ask",
+            json={"question": "What does the gamma source say about authentication?"},
+        )
+
+    assert ask_response.status_code == 200
+    assert ask_response.json() == {
+        "source_id": "source-weak",
+        "question": "What does the gamma source say about authentication?",
         "answer": "I don't have enough evidence in this source to answer that question.",
         "grounding_status": "insufficient_evidence",
         "evidence": [],

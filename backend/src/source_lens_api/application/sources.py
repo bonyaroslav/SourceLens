@@ -9,6 +9,7 @@ from ..domain.ports.embeddings import EmbeddingsPort
 from ..domain.ports.vector_store import VectorStorePort
 from ..infra.sqlite.database import metadata_connection
 from ..infra.sqlite.repositories import SQLiteSourceRepository
+from .evidence import EvidenceSufficiencyGate
 
 COMPLETED = "completed"
 GROUNDED = "grounded"
@@ -101,12 +102,14 @@ class AskService:
         embeddings: EmbeddingsPort,
         chat: ChatPort,
         vector_store: VectorStorePort,
+        evidence_gate: EvidenceSufficiencyGate | None = None,
         retrieval_limit: int = DEFAULT_RETRIEVAL_LIMIT,
     ) -> None:
         self._metadata_db_path = metadata_db_path
         self._embeddings = embeddings
         self._chat = chat
         self._vector_store = vector_store
+        self._evidence_gate = evidence_gate or EvidenceSufficiencyGate()
         self._retrieval_limit = retrieval_limit
 
     def ask(self, *, source_id: str, question: str) -> AskResult:
@@ -131,7 +134,10 @@ class AskService:
             source_id=source_id,
         )
         evidence = self._build_evidence(matches)
-        if not evidence:
+        if not evidence or not self._evidence_gate.is_sufficient(
+            question=normalized_question,
+            evidence_texts=[item.text for item in evidence],
+        ):
             return AskResult(
                 source_id=source_id,
                 question=normalized_question,

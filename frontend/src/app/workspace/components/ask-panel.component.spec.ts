@@ -9,13 +9,13 @@ const TEST_RESULT: AskResultViewModel = {
   answer: 'Grounded answer from the selected source.',
   groundingStatus: 'grounded',
   groundingLabel: 'Grounded',
-  groundingSeverity: 'success'
+  groundingSeverity: 'success',
 };
 
 describe('AskPanelComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AskPanelComponent]
+      imports: [AskPanelComponent],
     }).compileComponents();
   });
 
@@ -25,7 +25,7 @@ describe('AskPanelComponent', () => {
     fixture.componentRef.setInput('canAsk', true);
     fixture.componentRef.setInput(
       'disabledReason',
-      'This source is ready. Ask a focused question to retrieve a grounded answer and visible evidence.'
+      'This source is ready. Ask a focused question to retrieve a grounded answer and visible evidence.',
     );
     fixture.detectChanges();
 

@@ -80,7 +80,9 @@
   flex: 1;
   gap: var(--panel-gap);
   grid-template-columns: var(--layout-columns);
-  transition: gap 220ms ease, grid-template-columns 220ms ease;
+  transition:
+    gap 220ms ease,
+    grid-template-columns 220ms ease;
 }
 
 .surface-panel {
@@ -235,8 +237,7 @@
 .source-row.is-active {
   border-color: rgb(139 92 246 / 0.82);
   background:
-    linear-gradient(90deg, rgb(139 92 246 / 0.12), transparent 40%),
-    var(--source-row-background);
+    linear-gradient(90deg, rgb(139 92 246 / 0.12), transparent 40%), var(--source-row-background);
   box-shadow: inset 0 0 0 1px rgb(139 92 246 / 0.2);
 }
 

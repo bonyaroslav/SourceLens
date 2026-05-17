@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 
 $script:RepoRoot = Split-Path -Parent $PSScriptRoot
 $script:BackendProject = Join-Path $script:RepoRoot "backend"
+$script:FrontendProject = Join-Path $script:RepoRoot "frontend"
 $script:BootstrapPython = Join-Path $script:RepoRoot ".tools\bootstrap\Scripts\python.exe"
 $script:BootstrapUv = Join-Path $script:RepoRoot ".tools\bootstrap\Scripts\uv.exe"
 $script:WorkspaceTemp = Join-Path $script:RepoRoot ".tools\tmp"
@@ -27,6 +28,10 @@ function Get-BackendProject {
     return $script:BackendProject
 }
 
+function Get-FrontendProject {
+    return $script:FrontendProject
+}
+
 function Invoke-Uv {
     param(
         [Parameter(Mandatory = $true)]
@@ -35,6 +40,23 @@ function Invoke-Uv {
 
     $uv = Get-BootstrapUv
     & $uv @Arguments
+
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+}
+
+function Invoke-Npm {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments
+    )
+
+    if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) {
+        throw "npm is required to run frontend commands."
+    }
+
+    & npm.cmd @Arguments
 
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE

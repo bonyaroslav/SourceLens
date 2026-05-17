@@ -1,59 +1,45 @@
-# Frontend
+# Source Lens Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
+The Angular workspace is wired to the current MVP backend slice. It loads sources from `GET /sources`, lets the user select one active source, submits one question to `POST /sources/{source_id}/ask`, and renders the grounded answer plus evidence snippets.
 
-## Development server
+## Run locally
 
-To start a local development server, run:
+From the repo root:
 
-```bash
-ng serve
+```powershell
+.\tools\setup.ps1
+.\tools\dev.ps1
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Then, in `frontend\`:
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```powershell
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+The Angular dev server runs on `http://localhost:4200` and proxies `/api` requests to `http://127.0.0.1:8000`.
 
-```bash
-ng generate --help
+## Verification
+
+Repo-root canonical commands:
+
+```powershell
+.\tools\test.ps1
+.\tools\lint.ps1
+.\tools\typecheck.ps1
 ```
 
-## Building
+Frontend-only commands:
 
-To build the project run:
-
-```bash
-ng build
+```powershell
+npm run test:ci
+npm run lint
+npm run typecheck
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## MVP boundaries
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- exactly one selected source at a time
+- path-based local import remains the MVP import UX
+- grounded answers and visible evidence are in scope
+- multi-source querying, browser upload, and richer answer history remain out of scope

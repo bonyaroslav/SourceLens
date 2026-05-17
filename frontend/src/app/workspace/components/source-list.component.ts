@@ -42,10 +42,7 @@ import { SourceListItemViewModel } from '../workspace.models';
 
               <div class="source-row__meta">
                 <span class="source-type">{{ source.typeLabel }}</span>
-                <p-tag
-                  [value]="source.statusLabel"
-                  [severity]="source.statusSeverity"
-                ></p-tag>
+                <p-tag [value]="source.statusLabel" [severity]="source.statusSeverity"></p-tag>
               </div>
             </div>
           </article>
@@ -53,7 +50,7 @@ import { SourceListItemViewModel } from '../workspace.models';
       </div>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SourceListComponent {
   @Input() sources: SourceListItemViewModel[] = [];

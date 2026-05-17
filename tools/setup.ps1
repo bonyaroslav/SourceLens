@@ -7,11 +7,16 @@ $bootstrapPython = Join-Path $bootstrapDir "Scripts\python.exe"
 $bootstrapPip = Join-Path $bootstrapDir "Scripts\pip.exe"
 $bootstrapUv = Join-Path $bootstrapDir "Scripts\uv.exe"
 $backendProject = Join-Path $repoRoot "backend"
+$frontendProject = Join-Path $repoRoot "frontend"
 $workspaceTemp = Join-Path $repoRoot ".tools\tmp"
 $uvCache = Join-Path $repoRoot ".tools\uv-cache"
 
 if (-not (Get-Command py -ErrorAction SilentlyContinue)) {
     throw "Python launcher 'py' is required to run setup."
+}
+
+if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) {
+    throw "npm is required to run setup."
 }
 
 New-Item -ItemType Directory -Force -Path $workspaceTemp | Out-Null
@@ -48,5 +53,16 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Write-Host "Backend environment is ready."
-Write-Host "Use .\tools\dev.ps1 to start the API."
+Push-Location $frontendProject
+try {
+    & npm.cmd ci
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+}
+finally {
+    Pop-Location
+}
+
+Write-Host "Backend and frontend dependencies are ready."
+Write-Host "Use .\tools\dev.ps1 to start the API and npm start in .\frontend for the Angular UI."

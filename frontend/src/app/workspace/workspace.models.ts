@@ -54,4 +54,5 @@ export interface EvidenceItemViewModel {
   chunkIndex: number;
   text: string;
   score: number;
+  relativePath: string | null;
 }

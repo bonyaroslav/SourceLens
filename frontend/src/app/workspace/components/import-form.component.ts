@@ -55,8 +55,8 @@ interface ImportFormModel {
 
       <div class="question-shell__footer">
         <p>
-          The backend imports directly from the local filesystem, so this MVP uses a path-based
-          form instead of browser upload.
+          The backend imports directly from the local filesystem, so this MVP uses a path-based form
+          instead of browser upload.
         </p>
 
         <button
@@ -83,10 +83,7 @@ interface ImportFormModel {
       <div class="import-job-status">
         <div class="import-job-status__meta">
           <span class="section-label">Latest job</span>
-          <p-tag
-            [value]="importState.statusLabel"
-            [severity]="importState.statusSeverity"
-          ></p-tag>
+          <p-tag [value]="importState.statusLabel" [severity]="importState.statusSeverity"></p-tag>
         </div>
 
         @if (importState.statusDetail) {
@@ -106,7 +103,7 @@ interface ImportFormModel {
       </div>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImportFormComponent {
   @Input({ required: true }) importState!: ImportPanelViewModel;
@@ -115,7 +112,7 @@ export class ImportFormComponent {
   readonly form = new FormGroup<ImportFormModel>({
     path: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     name: new FormControl('', { nonNullable: true }),
-    description: new FormControl('', { nonNullable: true })
+    description: new FormControl('', { nonNullable: true }),
   });
 
   get showPathError(): boolean {
@@ -134,7 +131,7 @@ export class ImportFormComponent {
     this.submitImport.emit({
       path: path.trim(),
       name: toOptionalValue(name),
-      description: toOptionalValue(description)
+      description: toOptionalValue(description),
     });
   }
 }

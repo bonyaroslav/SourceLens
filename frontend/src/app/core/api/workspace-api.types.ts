@@ -38,6 +38,7 @@ export interface EvidenceDto {
   chunk_index: number;
   text: string;
   score: number;
+  relative_path?: string | null;
 }
 
 export interface AskResponseDto {

@@ -3,7 +3,7 @@ import {
   EvidenceDto,
   ImportJobDto,
   ImportSubmissionDto,
-  SourceDto
+  SourceDto,
 } from './workspace-api.types';
 import {
   ActiveSourceViewModel,
@@ -11,7 +11,7 @@ import {
   EvidenceItemViewModel,
   ImportPanelViewModel,
   SourceListItemViewModel,
-  TagSeverity
+  TagSeverity,
 } from '../../workspace/workspace.models';
 
 interface StatusMeta {
@@ -21,19 +21,19 @@ interface StatusMeta {
 
 const SOURCE_TYPE_LABELS: Record<string, string> = {
   local_file: 'Local file',
-  local_folder: 'Local folder'
+  local_folder: 'Local folder',
 };
 
 const SOURCE_STATUS_META: Record<string, StatusMeta> = {
   queued: { label: 'Queued', severity: 'info' },
   running: { label: 'Indexing', severity: 'info' },
   completed: { label: 'Ready', severity: 'success' },
-  failed: { label: 'Failed', severity: 'danger' }
+  failed: { label: 'Failed', severity: 'danger' },
 };
 
 const GROUNDING_STATUS_META: Record<string, StatusMeta> = {
   grounded: { label: 'Grounded', severity: 'success' },
-  insufficient_evidence: { label: 'Insufficient evidence', severity: 'warn' }
+  insufficient_evidence: { label: 'Insufficient evidence', severity: 'warn' },
 };
 
 export function toSourceListItemViewModel(source: SourceDto): SourceListItemViewModel {
@@ -46,7 +46,7 @@ export function toSourceListItemViewModel(source: SourceDto): SourceListItemView
     typeLabel: toSourceTypeLabel(source.source_type),
     statusLabel: status.label,
     statusSeverity: status.severity,
-    updatedLabel: `Updated ${formatDateTime(source.updated_at)}`
+    updatedLabel: `Updated ${formatDateTime(source.updated_at)}`,
   };
 }
 
@@ -62,7 +62,7 @@ export function toActiveSourceViewModel(source: SourceDto): ActiveSourceViewMode
     statusSeverity: status.severity,
     createdLabel: formatDateTime(source.created_at),
     updatedLabel: formatDateTime(source.updated_at),
-    isAskable: source.import_status === 'completed'
+    isAskable: source.import_status === 'completed',
   };
 }
 
@@ -70,14 +70,14 @@ export function toImportPanelViewModel(
   activeSubmission: ImportSubmissionDto | null,
   activeJob: ImportJobDto | null,
   error: string | null,
-  pending: boolean
+  pending: boolean,
 ): ImportPanelViewModel {
   const currentStatus = activeJob?.status ?? activeSubmission?.status ?? null;
   const status = currentStatus ? toSourceStatusMeta(currentStatus) : null;
   const statusDetail =
     activeJob !== null
-      ? activeJob.error_message ??
-        `Job ${activeJob.job_id} started ${formatDateTime(activeJob.started_at)}.`
+      ? (activeJob.error_message ??
+        `Job ${activeJob.job_id} started ${formatDateTime(activeJob.started_at)}.`)
       : activeSubmission !== null
         ? `Job ${activeSubmission.job_id} accepted for source ${activeSubmission.source_id}.`
         : null;
@@ -89,7 +89,7 @@ export function toImportPanelViewModel(
     statusSeverity: status?.severity ?? null,
     statusDetail,
     jobId: activeJob?.job_id ?? activeSubmission?.job_id ?? null,
-    sourceId: activeJob?.source_id ?? activeSubmission?.source_id ?? null
+    sourceId: activeJob?.source_id ?? activeSubmission?.source_id ?? null,
   };
 }
 
@@ -110,7 +110,7 @@ export function toAskResultViewModel(result: AskResponseDto): AskResultViewModel
     answer: result.answer,
     groundingStatus: result.grounding_status,
     groundingLabel: grounding.label,
-    groundingSeverity: grounding.severity
+    groundingSeverity: grounding.severity,
   };
 }
 
@@ -119,7 +119,8 @@ export function toEvidenceItemViewModel(item: EvidenceDto): EvidenceItemViewMode
     chunkId: item.chunk_id,
     chunkIndex: item.chunk_index,
     text: item.text,
-    score: item.score
+    score: item.score,
+    relativePath: item.relative_path ?? null,
   };
 }
 
@@ -130,6 +131,6 @@ export function toGroundingStatusMeta(status: string): StatusMeta {
 export function formatDateTime(value: string): string {
   return new Intl.DateTimeFormat([], {
     dateStyle: 'medium',
-    timeStyle: 'short'
+    timeStyle: 'short',
   }).format(new Date(value));
 }

@@ -2,7 +2,7 @@ import {
   AskResponseDto,
   ImportJobDto,
   ImportSubmissionDto,
-  SourceDto
+  SourceDto,
 } from '../../core/api/workspace-api.types';
 
 export interface SourcesState {
@@ -37,18 +37,18 @@ export const initialWorkspaceState: WorkspaceState = {
     items: [],
     loading: false,
     loaded: false,
-    error: null
+    error: null,
   },
   activeSourceId: null,
   import: {
     submitting: false,
     error: null,
     activeSubmission: null,
-    activeJob: null
+    activeJob: null,
   },
   ask: {
     submitting: false,
     error: null,
-    result: null
-  }
+    result: null,
+  },
 };

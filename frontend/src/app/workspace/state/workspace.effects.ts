@@ -18,8 +18,8 @@ export class WorkspaceEffects {
   readonly workspaceEntered$ = createEffect(() =>
     this.actions$.pipe(
       ofType(workspaceActions.workspaceEntered),
-      map(() => workspaceActions.loadSources())
-    )
+      map(() => workspaceActions.loadSources()),
+    ),
   );
 
   readonly loadSources$ = createEffect(() =>
@@ -29,11 +29,11 @@ export class WorkspaceEffects {
         this.workspaceApi.listSources().pipe(
           map((sources) => workspaceActions.loadSourcesSuccess({ sources })),
           catchError((error: unknown) =>
-            of(workspaceActions.loadSourcesFailure({ error: getErrorMessage(error) }))
-          )
-        )
-      )
-    )
+            of(workspaceActions.loadSourcesFailure({ error: getErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
   );
 
   readonly submitImport$ = createEffect(() =>
@@ -45,15 +45,15 @@ export class WorkspaceEffects {
             concat(
               of(workspaceActions.submitImportSuccess({ submission })),
               of(workspaceActions.loadSources()),
-              of(workspaceActions.pollImportJob({ jobId: submission.job_id }))
-            )
+              of(workspaceActions.pollImportJob({ jobId: submission.job_id })),
+            ),
           ),
           catchError((error: unknown) =>
-            of(workspaceActions.submitImportFailure({ error: getErrorMessage(error) }))
-          )
-        )
-      )
-    )
+            of(workspaceActions.submitImportFailure({ error: getErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
   );
 
   readonly pollImportJob$ = createEffect(() =>
@@ -65,23 +65,23 @@ export class WorkspaceEffects {
             isTerminalJob(job)
               ? EMPTY
               : timer(POLL_INTERVAL_MS).pipe(
-                  switchMap(() => this.workspaceApi.getImportJob(jobId))
-                )
+                  switchMap(() => this.workspaceApi.getImportJob(jobId)),
+                ),
           ),
           map((job) => workspaceActions.pollImportJobSuccess({ job })),
           catchError((error: unknown) =>
-            of(workspaceActions.pollImportJobFailure({ error: getErrorMessage(error) }))
-          )
-        )
-      )
-    )
+            of(workspaceActions.pollImportJobFailure({ error: getErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
   );
 
   readonly refreshSourcesOnTerminalJob$ = createEffect(() =>
     this.actions$.pipe(
       ofType(workspaceActions.pollImportJobSuccess),
-      switchMap(({ job }) => (isTerminalJob(job) ? of(workspaceActions.loadSources()) : EMPTY))
-    )
+      switchMap(({ job }) => (isTerminalJob(job) ? of(workspaceActions.loadSources()) : EMPTY)),
+    ),
   );
 
   readonly submitAsk$ = createEffect(() =>
@@ -91,11 +91,11 @@ export class WorkspaceEffects {
         this.workspaceApi.askSource(sourceId, { question }).pipe(
           map((result) => workspaceActions.submitAskSuccess({ result })),
           catchError((error: unknown) =>
-            of(workspaceActions.submitAskFailure({ error: getAskErrorMessage(error) }))
-          )
-        )
-      )
-    )
+            of(workspaceActions.submitAskFailure({ error: getAskErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
   );
 }
 

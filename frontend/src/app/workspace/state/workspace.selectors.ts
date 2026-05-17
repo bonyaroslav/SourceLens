@@ -6,37 +6,37 @@ import {
   toEvidenceItemViewModel,
   toImportPanelViewModel,
   toSourceListItemViewModel,
-  toSourceStatusMeta
+  toSourceStatusMeta,
 } from '../../core/api/workspace-api.mappers';
 import { workspaceFeature } from './workspace.reducer';
 
 export const selectSources = createSelector(
   workspaceFeature.selectSources,
-  (sourcesState) => sourcesState.items
+  (sourcesState) => sourcesState.items,
 );
 
 export const selectSourcesLoading = createSelector(
   workspaceFeature.selectSources,
-  (sourcesState) => sourcesState.loading
+  (sourcesState) => sourcesState.loading,
 );
 
 export const selectSourcesError = createSelector(
   workspaceFeature.selectSources,
-  (sourcesState) => sourcesState.error
+  (sourcesState) => sourcesState.error,
 );
 
 export const selectSourceListItems = createSelector(selectSources, (sources) =>
-  sources.map(toSourceListItemViewModel)
+  sources.map(toSourceListItemViewModel),
 );
 
 export const selectActiveSource = createSelector(
   selectSources,
   workspaceFeature.selectActiveSourceId,
-  (sources, activeSourceId) => sources.find((source) => source.id === activeSourceId) ?? null
+  (sources, activeSourceId) => sources.find((source) => source.id === activeSourceId) ?? null,
 );
 
 export const selectActiveSourceViewModel = createSelector(selectActiveSource, (source) =>
-  source ? toActiveSourceViewModel(source) : null
+  source ? toActiveSourceViewModel(source) : null,
 );
 
 export const selectImportPanelViewModel = createSelector(
@@ -46,36 +46,37 @@ export const selectImportPanelViewModel = createSelector(
       importState.activeSubmission,
       importState.activeJob,
       importState.error,
-      importState.submitting
-    )
+      importState.submitting,
+    ),
 );
 
 export const selectCanAsk = createSelector(
   selectActiveSource,
-  (source) => source?.import_status === 'completed'
+  (source) => source?.import_status === 'completed',
 );
 
 export const selectAskSubmitting = createSelector(
   workspaceFeature.selectAsk,
-  (askState) => askState.submitting
+  (askState) => askState.submitting,
 );
 
 export const selectAskError = createSelector(
   workspaceFeature.selectAsk,
-  (askState) => askState.error
+  (askState) => askState.error,
 );
 
 export const selectAskResult = createSelector(workspaceFeature.selectAsk, (askState) =>
-  askState.result ? toAskResultViewModel(askState.result) : null
+  askState.result ? toAskResultViewModel(askState.result) : null,
 );
 
-export const selectEvidenceItems = createSelector(workspaceFeature.selectAsk, (askState) =>
-  askState.result?.evidence.map(toEvidenceItemViewModel) ?? []
+export const selectEvidenceItems = createSelector(
+  workspaceFeature.selectAsk,
+  (askState) => askState.result?.evidence.map(toEvidenceItemViewModel) ?? [],
 );
 
 export const selectHasInsufficientEvidence = createSelector(
   workspaceFeature.selectAsk,
-  (askState) => askState.result?.grounding_status === 'insufficient_evidence'
+  (askState) => askState.result?.grounding_status === 'insufficient_evidence',
 );
 
 export const selectAskDisabledReason = createSelector(
@@ -91,5 +92,5 @@ export const selectAskDisabledReason = createSelector(
     }
 
     return 'This source is ready. Ask a focused question to retrieve a grounded answer and visible evidence.';
-  }
+  },
 );

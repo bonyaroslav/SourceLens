@@ -1,4 +1,4 @@
-# Source Lens Backend Vertical Slice Plan
+# Source Lens Angular Wiring Milestone Plan
 
 ## Summary
 
@@ -6,17 +6,17 @@
 
 The current milestone is:
 
-- finish the **backend vertical slice**
-- keep the scope **backend-only**
-- defer wired frontend work to the next milestone
+- finish the **Angular wiring milestone**
+- wire the existing Angular workspace to the shipped backend slice
+- keep the scope to **one selected source**, grounded QA, and visible evidence
 
-A static Angular workspace prototype may exist under `frontend/` for design exploration, but it is not part of this backend milestone's done criteria.
+A local Angular workspace exists under `frontend/` and is part of this milestone's done criteria.
 
 This plan intentionally avoids shipped-history notes, phase retrospectives, and implementation logs.
 
 ## Locked Product Scope
 
-The backend vertical slice for **Source Lens** includes:
+The Angular wiring milestone for **Source Lens** includes:
 
 - local-first knowledge workspace backend
 - one selected source at a time
@@ -39,20 +39,25 @@ The backend vertical slice for **Source Lens** includes:
   - store metadata and vectors
 - source query flow:
   - list sources
-  - get source detail
+  - select one active source in the UI
   - ask one question against one selected source
   - retrieve top evidence
   - generate grounded answer
   - return evidence snippets
+- Angular workspace flow:
+  - load sources from `GET /sources`
+  - surface loading, empty, and request-error states
+  - block ask when the selected source is not ready
+  - handle `409` source-not-ready ask failures
+  - render the grounded answer and evidence snippets for the latest ask result
 - evaluation baseline:
   - one grounded golden-path check
   - one insufficient-evidence check
 
 ## Explicitly Out Of Scope
 
-These are deferred until after the backend vertical slice is complete:
+These are deferred until after the Angular wiring milestone is complete:
 
-- Angular UI wiring beyond the static prototype
 - browser upload
 - multi-source querying
 - connector ecosystem
@@ -68,7 +73,7 @@ These are deferred until after the backend vertical slice is complete:
 
 - Product name: `Source Lens`
 - Backend runtime: Python
-- Frontend target for the next milestone: Angular + TypeScript
+- Frontend target: Angular + TypeScript
 - Model runtime: Ollama
 - Chat model default: `qwen3:4b`
 - Embedding model default: `qwen3-embedding:0.6b`
@@ -100,7 +105,7 @@ These are the canonical local commands for the milestone:
 
 ### API
 
-The backend vertical slice exposes:
+The backend slice exposed to the Angular workspace is:
 
 - `GET /health`
 - `POST /sources/import`
@@ -117,9 +122,9 @@ The backend vertical slice exposes:
 
 ## Definition Of Done
 
-The backend vertical slice is done only when all of the following are true:
+The Angular wiring milestone is done only when all of the following are true:
 
-1. Deterministic commands exist and are the canonical way to run and verify the backend:
+1. Deterministic commands exist and are the canonical way to run and verify the repo slice:
    - `setup`
    - `dev`
    - `test`
@@ -127,7 +132,7 @@ The backend vertical slice is done only when all of the following are true:
    - `typecheck`
    - `eval`
 
-2. The API surface is stable and implemented:
+2. The API surface remains stable and implemented:
    - `GET /health`
    - `POST /sources/import`
    - `GET /import-jobs/{job_id}`
@@ -146,7 +151,7 @@ The backend vertical slice is done only when all of the following are true:
    - `.html`
    - `.htm`
 
-5. The import pipeline works end to end:
+5. The backend import pipeline works end to end:
    - validates input
    - snapshots content before background processing
    - stores source metadata and import-job metadata in SQLite
@@ -164,16 +169,24 @@ The backend vertical slice is done only when all of the following are true:
    - returns answer plus evidence snippets
    - returns insufficient-evidence behavior when evidence is absent
 
-7. Evaluation is real and repeatable:
+7. The Angular workspace is wired to the backend slice end to end:
+   - source list loads from `GET /sources`
+   - one active source can be selected in the UI
+   - ask submits to `POST /sources/{source_id}/ask`
+   - grounded answers render in the UI
+   - evidence snippets render in the UI
+   - loading, empty, error, and source-not-ready states are handled deliberately
+
+8. Evaluation is real and repeatable:
    - `eval` checks one grounded happy path through the real import flow
    - `eval` checks one insufficient-evidence path
    - `eval` exits non-zero on failure
    - live Ollama dependency proof remains a separate opt-in smoke command, not part of the canonical `eval` gate
 
-8. Docs are aligned:
-   - `plan.md` reflects only the locked backend architecture and done criteria
-   - `README.md` does not imply that frontend is part of the current milestone
-   - `AGENTS.md` remains consistent with the narrowed milestone
+9. Docs are aligned:
+   - `plan.md` reflects the Angular wiring milestone scope and done criteria
+   - `README.md` describes the wired frontend and backend usage without widening scope
+   - `AGENTS.md` remains consistent with the current MVP slice
 
 ## Acceptance Scenarios
 
@@ -202,6 +215,15 @@ The backend vertical slice is done only when all of the following are true:
 - asking a non-ready source returns a clear conflict or readiness error
 - insufficient-evidence path returns the locked contract
 
+### Angular Wiring
+
+- the source list shows loading while `GET /sources` is in flight
+- an empty catalog shows a deliberate empty state
+- a source-list request failure shows a deliberate error state
+- selecting another source clears the previous ask result and evidence
+- asking a completed source renders the latest answer and evidence snippets
+- asking a source that becomes not-ready surfaces the handled `409` message
+
 ### Eval
 
 - grounded golden path passes on a repo-owned fixture
@@ -210,16 +232,16 @@ The backend vertical slice is done only when all of the following are true:
 
 ## Next Step After This Milestone
 
-After the backend vertical slice is complete:
+After the Angular wiring milestone is complete:
 
-- create a separate plan for the Angular UI milestone
-- do not extend this file with frontend scope
+- evaluate the next MVP slice without widening beyond one selected source by default
+- keep future plans separate from this file's locked milestone scope
 
 ## Planning Rule
 
 For any new idea, ask:
 
-1. does it finish the backend vertical slice?
+1. does it finish the Angular wiring milestone?
 2. does it keep the system simpler?
 3. does it preserve clear storage and service boundaries?
 

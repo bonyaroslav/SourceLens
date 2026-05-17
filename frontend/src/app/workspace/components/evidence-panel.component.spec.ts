@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import {
   ActiveSourceViewModel,
   AskResultViewModel,
-  EvidenceItemViewModel
+  EvidenceItemViewModel,
 } from '../workspace.models';
 import { EvidencePanelComponent } from './evidence-panel.component';
 
@@ -16,7 +16,7 @@ const ACTIVE_SOURCE: ActiveSourceViewModel = {
   statusSeverity: 'success',
   createdLabel: 'Apr 12, 2026, 10:00 AM',
   updatedLabel: 'Apr 12, 2026, 10:05 AM',
-  isAskable: true
+  isAskable: true,
 };
 
 const GROUNDED_RESULT: AskResultViewModel = {
@@ -25,7 +25,7 @@ const GROUNDED_RESULT: AskResultViewModel = {
   answer: 'Grounded answer.',
   groundingStatus: 'grounded',
   groundingLabel: 'Grounded',
-  groundingSeverity: 'success'
+  groundingSeverity: 'success',
 };
 
 const EVIDENCE_ITEMS: EvidenceItemViewModel[] = [
@@ -33,14 +33,15 @@ const EVIDENCE_ITEMS: EvidenceItemViewModel[] = [
     chunkId: 'chunk-1',
     chunkIndex: 2,
     text: 'Beta paragraph two with answer context.',
-    score: 0.84
-  }
+    score: 0.84,
+    relativePath: 'notes/beta.txt',
+  },
 ];
 
 describe('EvidencePanelComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EvidencePanelComponent]
+      imports: [EvidencePanelComponent],
     }).compileComponents();
   });
 
@@ -51,7 +52,7 @@ describe('EvidencePanelComponent', () => {
       ...GROUNDED_RESULT,
       groundingStatus: 'insufficient_evidence',
       groundingLabel: 'Insufficient evidence',
-      groundingSeverity: 'warn'
+      groundingSeverity: 'warn',
     });
     fixture.componentRef.setInput('hasInsufficientEvidence', true);
     fixture.detectChanges();
@@ -59,7 +60,7 @@ describe('EvidencePanelComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Insufficient evidence');
     expect(compiled.textContent).toContain(
-      'The ask request completed, but the backend did not return supporting snippets.'
+      'The ask request completed, but the backend did not return supporting snippets.',
     );
   });
 
@@ -72,6 +73,7 @@ describe('EvidencePanelComponent', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Chunk 2');
+    expect(compiled.textContent).toContain('notes/beta.txt');
     expect(compiled.textContent).toContain('Score 0.84');
     expect(compiled.textContent).toContain('Beta paragraph two with answer context.');
   });

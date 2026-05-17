@@ -12,9 +12,10 @@ const TEST_RESULT = {
       chunk_id: 'chunk-1',
       chunk_index: 0,
       text: 'Alpha paragraph.',
-      score: 0.91
-    }
-  ]
+      score: 0.91,
+      relative_path: 'alpha.md',
+    },
+  ],
 };
 
 describe('workspace reducer', () => {
@@ -24,32 +25,32 @@ describe('workspace reducer', () => {
       ask: {
         submitting: false,
         error: 'Old error',
-        result: TEST_RESULT
-      }
+        result: TEST_RESULT,
+      },
     };
 
     const nextState = workspaceFeature.reducer(
       state,
-      workspaceActions.submitAsk({ sourceId: 'source-1', question: 'What changed?' })
+      workspaceActions.submitAsk({ sourceId: 'source-1', question: 'What changed?' }),
     );
 
     expect(nextState.ask).toEqual({
       submitting: true,
       error: null,
-      result: null
+      result: null,
     });
   });
 
   it('stores the latest ask result on success', () => {
     const nextState = workspaceFeature.reducer(
       initialWorkspaceState,
-      workspaceActions.submitAskSuccess({ result: TEST_RESULT })
+      workspaceActions.submitAskSuccess({ result: TEST_RESULT }),
     );
 
     expect(nextState.ask).toEqual({
       submitting: false,
       error: null,
-      result: TEST_RESULT
+      result: TEST_RESULT,
     });
   });
 
@@ -60,20 +61,20 @@ describe('workspace reducer', () => {
       ask: {
         submitting: false,
         error: 'Request failed',
-        result: TEST_RESULT
-      }
+        result: TEST_RESULT,
+      },
     };
 
     const nextState = workspaceFeature.reducer(
       state,
-      workspaceActions.setActiveSource({ sourceId: 'source-2' })
+      workspaceActions.setActiveSource({ sourceId: 'source-2' }),
     );
 
     expect(nextState.activeSourceId).toBe('source-2');
     expect(nextState.ask).toEqual({
       submitting: false,
       error: null,
-      result: null
+      result: null,
     });
   });
 });

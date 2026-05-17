@@ -4,7 +4,7 @@ import { TagModule } from 'primeng/tag';
 import {
   ActiveSourceViewModel,
   AskResultViewModel,
-  EvidenceItemViewModel
+  EvidenceItemViewModel,
 } from '../workspace.models';
 
 @Component({
@@ -41,10 +41,7 @@ import {
 
       <div class="detail-strip">
         <span class="section-label">Import status</span>
-        <p-tag
-          [value]="activeSource.statusLabel"
-          [severity]="activeSource.statusSeverity"
-        ></p-tag>
+        <p-tag [value]="activeSource.statusLabel" [severity]="activeSource.statusSeverity"></p-tag>
       </div>
 
       <p class="detail-note">{{ activeSource.description }}</p>
@@ -71,7 +68,7 @@ import {
               <div class="evidence-item__meta">
                 <div>
                   <h3>Chunk {{ evidence.chunkIndex }}</h3>
-                  <p>{{ result.groundingLabel }}</p>
+                  <p>{{ evidence.relativePath ?? result.groundingLabel }}</p>
                 </div>
                 <span class="evidence-score">Score {{ evidence.score }}</span>
               </div>
@@ -93,7 +90,7 @@ import {
       </p>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EvidencePanelComponent {
   @Input() activeSource: ActiveSourceViewModel | null = null;

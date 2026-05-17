@@ -1,8 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import {
-  ApplicationConfig,
-  provideBrowserGlobalErrorListeners
-} from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideEffects } from '@ngrx/effects';
 import { provideState, provideStore } from '@ngrx/store';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -26,7 +23,7 @@ const SourceLensPreset = definePreset(Aura, {
       700: '{violet.700}',
       800: '{violet.800}',
       900: '{violet.900}',
-      950: '{violet.950}'
+      950: '{violet.950}',
     },
     colorScheme: {
       dark: {
@@ -42,19 +39,19 @@ const SourceLensPreset = definePreset(Aura, {
           700: '#3F3F46',
           800: '#27272A',
           900: '#18181B',
-          950: '#09090B'
+          950: '#09090B',
         },
         primary: {
           color: '#8B5CF6',
           contrastColor: '#F4F4F5',
           hoverColor: '#A78BFA',
-          activeColor: '#C4B5FD'
+          activeColor: '#C4B5FD',
         },
         highlight: {
           background: 'color-mix(in srgb, #8B5CF6, transparent 84%)',
           focusBackground: 'color-mix(in srgb, #8B5CF6, transparent 76%)',
           color: '#F4F4F5',
-          focusColor: '#F4F4F5'
+          focusColor: '#F4F4F5',
         },
         formField: {
           background: '#18181B',
@@ -66,37 +63,37 @@ const SourceLensPreset = definePreset(Aura, {
           focusBorderColor: '#8B5CF6',
           color: '#F4F4F5',
           disabledColor: '#A1A1AA',
-          placeholderColor: '#A1A1AA'
+          placeholderColor: '#A1A1AA',
         },
         text: {
           color: '#F4F4F5',
           hoverColor: '#F4F4F5',
           mutedColor: '#A1A1AA',
-          hoverMutedColor: '#D4D4D8'
+          hoverMutedColor: '#D4D4D8',
         },
         content: {
           background: '#18181B',
           hoverBackground: '#27272A',
           borderColor: '#3F3F46',
           color: '#F4F4F5',
-          hoverColor: '#F4F4F5'
+          hoverColor: '#F4F4F5',
         },
         overlay: {
           select: {
             background: '#18181B',
             borderColor: '#3F3F46',
-            color: '#F4F4F5'
+            color: '#F4F4F5',
           },
           popover: {
             background: '#18181B',
             borderColor: '#3F3F46',
-            color: '#F4F4F5'
+            color: '#F4F4F5',
           },
           modal: {
             background: '#18181B',
             borderColor: '#3F3F46',
-            color: '#F4F4F5'
-          }
+            color: '#F4F4F5',
+          },
         },
         list: {
           option: {
@@ -106,16 +103,16 @@ const SourceLensPreset = definePreset(Aura, {
             color: '#F4F4F5',
             focusColor: '#F4F4F5',
             selectedColor: '#F4F4F5',
-            selectedFocusColor: '#F4F4F5'
+            selectedFocusColor: '#F4F4F5',
           },
           optionGroup: {
             background: 'transparent',
-            color: '#A1A1AA'
-          }
-        }
-      }
-    }
-  }
+            color: '#A1A1AA',
+          },
+        },
+      },
+    },
+  },
 });
 
 export const appConfig: ApplicationConfig = {
@@ -132,9 +129,9 @@ export const appConfig: ApplicationConfig = {
       theme: {
         preset: SourceLensPreset,
         options: {
-          darkModeSelector: '.source-lens-app'
-        }
-      }
-    })
-  ]
+          darkModeSelector: '.source-lens-app',
+        },
+      },
+    }),
+  ],
 };

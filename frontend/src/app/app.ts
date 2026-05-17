@@ -6,6 +6,6 @@ import { WorkspaceShellComponent } from './workspace/components/workspace-shell.
   selector: 'app-root',
   imports: [WorkspaceShellComponent],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
 })
 export class App {}

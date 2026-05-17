@@ -5,7 +5,7 @@ import {
   ImportJobDto,
   ImportSourceRequest,
   ImportSubmissionDto,
-  SourceDto
+  SourceDto,
 } from '../../core/api/workspace-api.types';
 
 export const workspaceActions = createActionGroup({
@@ -24,6 +24,6 @@ export const workspaceActions = createActionGroup({
     pollImportJobFailure: props<{ error: string }>(),
     submitAsk: props<{ sourceId: string; question: string }>(),
     submitAskSuccess: props<{ result: AskResponseDto }>(),
-    submitAskFailure: props<{ error: string }>()
-  }
+    submitAskFailure: props<{ error: string }>(),
+  },
 });

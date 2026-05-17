@@ -8,7 +8,7 @@ import {
   ImportJobDto,
   ImportSourceRequest,
   ImportSubmissionDto,
-  SourceDto
+  SourceDto,
 } from './workspace-api.types';
 
 @Injectable({ providedIn: 'root' })

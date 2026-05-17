@@ -19,9 +19,10 @@ const TEST_ASK_RESULT: AskResponseDto = {
       chunk_id: 'chunk-1',
       chunk_index: 0,
       text: 'Alpha paragraph.',
-      score: 0.93
-    }
-  ]
+      score: 0.93,
+      relative_path: 'alpha.md',
+    },
+  ],
 };
 
 describe('WorkspaceEffects', () => {
@@ -39,20 +40,21 @@ describe('WorkspaceEffects', () => {
     actions$ = new Subject<Action>();
     workspaceApi = {
       listSources: () => of([]),
-      getSource: () => of({
-        id: 'source-1',
-        name: 'plan.md',
-        description: 'Locked scope',
-        source_type: 'local_file',
-        import_status: 'completed',
-        created_at: '2026-04-12T10:00:00Z',
-        updated_at: '2026-04-12T10:05:00Z'
-      }),
+      getSource: () =>
+        of({
+          id: 'source-1',
+          name: 'plan.md',
+          description: 'Locked scope',
+          source_type: 'local_file',
+          import_status: 'completed',
+          created_at: '2026-04-12T10:00:00Z',
+          updated_at: '2026-04-12T10:05:00Z',
+        }),
       submitImport: () =>
         of({
           source_id: 'source-1',
           job_id: 'job-1',
-          status: 'queued'
+          status: 'queued',
         }),
       getImportJob: () =>
         of({
@@ -61,9 +63,9 @@ describe('WorkspaceEffects', () => {
           status: 'completed',
           started_at: '2026-04-12T10:00:00Z',
           finished_at: '2026-04-12T10:05:00Z',
-          error_message: null
+          error_message: null,
         }),
-      askSource: () => of(TEST_ASK_RESULT)
+      askSource: () => of(TEST_ASK_RESULT),
     };
 
     TestBed.configureTestingModule({
@@ -72,9 +74,9 @@ describe('WorkspaceEffects', () => {
         provideMockActions(() => actions$),
         {
           provide: WorkspaceApiService,
-          useValue: workspaceApi
-        }
-      ]
+          useValue: workspaceApi,
+        },
+      ],
     });
 
     effects = TestBed.inject(WorkspaceEffects);
@@ -97,7 +99,7 @@ describe('WorkspaceEffects', () => {
     actions$.next(workspaceActions.submitAsk({ sourceId: 'source-1', question: 'What changed?' }));
 
     await expect(actionPromise).resolves.toEqual(
-      workspaceActions.submitAskSuccess({ result: TEST_ASK_RESULT })
+      workspaceActions.submitAskSuccess({ result: TEST_ASK_RESULT }),
     );
     expect(receivedSourceId).toBe('source-1');
     expect(receivedQuestion).toBe('What changed?');
@@ -105,11 +107,8 @@ describe('WorkspaceEffects', () => {
 
   [
     [400, 'Enter a valid question before asking the source.'],
-    [
-      404,
-      'The selected source could not be found. Refresh the catalog and choose another source.'
-    ],
-    [409, 'This source is not ready yet. Wait for indexing to finish before asking.']
+    [404, 'The selected source could not be found. Refresh the catalog and choose another source.'],
+    [409, 'This source is not ready yet. Wait for indexing to finish before asking.'],
   ].forEach(([status, message]) => {
     it(`maps ${status} ask failures to a stable UI message`, async () => {
       workspaceApi.askSource = () =>
@@ -117,17 +116,17 @@ describe('WorkspaceEffects', () => {
           () =>
             new HttpErrorResponse({
               status: Number(status),
-              error: { detail: 'Backend detail.' }
-            })
+              error: { detail: 'Backend detail.' },
+            }),
         );
 
       const actionPromise = firstValueFrom(effects.submitAsk$);
       actions$.next(
-        workspaceActions.submitAsk({ sourceId: 'source-1', question: 'What changed?' })
+        workspaceActions.submitAsk({ sourceId: 'source-1', question: 'What changed?' }),
       );
 
       await expect(actionPromise).resolves.toEqual(
-        workspaceActions.submitAskFailure({ error: String(message) })
+        workspaceActions.submitAskFailure({ error: String(message) }),
       );
     });
   });
@@ -145,7 +144,9 @@ describe('WorkspaceEffects', () => {
     const subscription = effects.submitAsk$.subscribe((action) => emitted.push(action));
 
     actions$.next(workspaceActions.submitAsk({ sourceId: 'source-1', question: 'First question' }));
-    actions$.next(workspaceActions.submitAsk({ sourceId: 'source-1', question: 'Second question' }));
+    actions$.next(
+      workspaceActions.submitAsk({ sourceId: 'source-1', question: 'Second question' }),
+    );
 
     expect(callCount).toBe(1);
 

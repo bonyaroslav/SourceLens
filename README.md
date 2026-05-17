@@ -115,7 +115,7 @@ Ask things like:
 
 ## MVP scope
 
-### Implemented in the current backend slice
+### Implemented in the current MVP slice
 - backend scaffold with deterministic local commands
 - API health endpoint
 - repo-local runtime config and data bootstrap
@@ -131,14 +131,19 @@ Ask things like:
 - embedding-based retrieval for one selected source
 - grounded answer generation
 - answer + evidence snippets
+- Angular workspace wired to the backend source list
+- single-source selection in the Angular UI
+- grounded ask flow wired to the backend
+- evidence snippet rendering in the Angular UI
+- handled loading, empty, error, and source-not-ready ask states
 
 ### Verified now
 - deterministic verification through `.\tools\test.ps1`, `.\tools\lint.ps1`, `.\tools\typecheck.ps1`, and `.\tools\eval.ps1`
 - separate opt-in live Ollama smoke proof through `.\tools\live-deps.ps1`
 
 ### Next in the MVP roadmap
-- start the Angular wiring milestone against the backend slice
-- keep the static Angular workspace prototype in `frontend/` design-led until backend wiring starts
+- refine the wired workspace UX without widening beyond one selected source
+- keep deeper retrieval, ranking, and multi-source work deferred until after the MVP slice hardens
 
 ### Intentionally not overbuilt yet
 - deep crawling
@@ -154,7 +159,7 @@ The MVP is a **sharp vertical slice**: one selected source, one clean retrieval 
 ## Architecture at a glance
 
 ```text
-Angular workspace prototype / future wired UI
+Angular workspace
    ↓
 Python API
  ├─ source catalog
@@ -181,17 +186,17 @@ Python API
 - **Vector store:** Qdrant local mode
 - **Metadata store:** SQLite via a swappable repository / adapter layer
 - **Workflow:** import → chunk → embed → retrieve → answer
-- **Current milestone:** backend vertical slice only, with a static Angular prototype kept separate under `frontend/`
-- **Next milestone:** wire the Angular source selection and ask UI to the backend slice
+- **Current milestone:** Angular wiring for the existing backend slice
+- **Default query scope:** exactly one selected source at a time
 
 ### Why this stack
 Because it gets to a real end-to-end prototype fast, stays local-first, and keeps the path open for more controlled enterprise deployment later.
 
 ---
 
-## Local backend scaffold
+## Local workspace scaffold
 
-The repo now includes a backend-only scaffold for the first implementation slice.
+The repo now includes the backend slice plus a wired Angular workspace for the MVP ask flow.
 
 Windows-first commands from the repo root:
 
@@ -203,6 +208,13 @@ Windows-first commands from the repo root:
 - `.\tools\eval.ps1`
 - `.\tools\live-deps.ps1`
 
+Frontend workspace commands inside `frontend\`:
+
+- `npm start`
+- `npm run test:ci`
+- `npm run lint`
+- `npm run typecheck`
+
 Current runtime surface:
 
 - `GET /health`
@@ -212,9 +224,11 @@ Current runtime surface:
 - `GET /sources/{source_id}`
 - `POST /sources/{source_id}/ask`
 
-`setup.ps1` bootstraps a repo-local helper environment for `uv` under `.tools\bootstrap` and then syncs the backend project.
+`setup.ps1` bootstraps the repo-local backend helper environment under `.tools\bootstrap` and installs frontend dependencies with `npm ci`.
 
-`eval.ps1` is the deterministic backend MVP eval gate. `live-deps.ps1` is the separate opt-in Ollama dependency proof command.
+`dev.ps1` starts the API on `http://127.0.0.1:8000`. Run `npm start` inside `frontend\` to serve the Angular workspace through the `/api` proxy on `http://localhost:4200`.
+
+`test.ps1`, `lint.ps1`, and `typecheck.ps1` now cover both backend and frontend checks. `eval.ps1` remains the deterministic backend MVP eval gate. `live-deps.ps1` is the separate opt-in Ollama dependency proof command.
 
 ---
 
@@ -284,7 +298,7 @@ These are product-facing milestones after the current backend slice. Some backen
 
 > Add the first real screenshot or GIF as soon as the vertical slice works.
 >
-> Best first demo: **source list + selected source + grounded answer + evidence snippets**.
+> Best current demo: **source list + selected source + grounded answer + evidence snippets**.
 
 ```html
 <p align="center">

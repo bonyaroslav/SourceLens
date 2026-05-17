@@ -9,7 +9,7 @@ import {
   AskResponseDto,
   ImportJobDto,
   ImportSubmissionDto,
-  SourceDto
+  SourceDto,
 } from './core/api/workspace-api.types';
 
 const TEST_SOURCES: SourceDto[] = [
@@ -20,14 +20,23 @@ const TEST_SOURCES: SourceDto[] = [
     source_type: 'local_file',
     import_status: 'completed',
     created_at: '2026-04-12T10:00:00Z',
-    updated_at: '2026-04-12T10:05:00Z'
-  }
+    updated_at: '2026-04-12T10:05:00Z',
+  },
+  {
+    id: 'source-2',
+    name: 'guide',
+    description: 'Folder-backed source.',
+    source_type: 'local_folder',
+    import_status: 'completed',
+    created_at: '2026-04-12T09:00:00Z',
+    updated_at: '2026-04-12T10:10:00Z',
+  },
 ];
 
 const TEST_SUBMISSION: ImportSubmissionDto = {
   source_id: 'source-1',
   job_id: 'job-1',
-  status: 'queued'
+  status: 'queued',
 };
 
 const TEST_JOB: ImportJobDto = {
@@ -36,7 +45,7 @@ const TEST_JOB: ImportJobDto = {
   status: 'completed',
   started_at: '2026-04-12T10:00:00Z',
   finished_at: '2026-04-12T10:05:00Z',
-  error_message: null
+  error_message: null,
 };
 
 const TEST_ASK_RESPONSE: AskResponseDto = {
@@ -49,13 +58,34 @@ const TEST_ASK_RESPONSE: AskResponseDto = {
       chunk_id: 'chunk-1',
       chunk_index: 0,
       text: 'Alpha paragraph.',
-      score: 0.92
-    }
-  ]
+      score: 0.92,
+      relative_path: 'docs/plan.md',
+    },
+  ],
 };
 
 describe('App', () => {
+  const workspaceApi: {
+    listSources: typeof WorkspaceApiService.prototype.listSources;
+    getSource: typeof WorkspaceApiService.prototype.getSource;
+    submitImport: typeof WorkspaceApiService.prototype.submitImport;
+    getImportJob: typeof WorkspaceApiService.prototype.getImportJob;
+    askSource: typeof WorkspaceApiService.prototype.askSource;
+  } = {
+    listSources: () => of(TEST_SOURCES),
+    getSource: () => of(TEST_SOURCES[0]),
+    submitImport: () => of(TEST_SUBMISSION),
+    getImportJob: () => of(TEST_JOB),
+    askSource: () => of(TEST_ASK_RESPONSE),
+  };
+
   beforeEach(async () => {
+    workspaceApi.listSources = () => of(TEST_SOURCES);
+    workspaceApi.getSource = () => of(TEST_SOURCES[0]);
+    workspaceApi.submitImport = () => of(TEST_SUBMISSION);
+    workspaceApi.getImportJob = () => of(TEST_JOB);
+    workspaceApi.askSource = () => of(TEST_ASK_RESPONSE);
+
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
@@ -63,15 +93,9 @@ describe('App', () => {
         provideHttpClientTesting(),
         {
           provide: WorkspaceApiService,
-          useValue: {
-            listSources: () => of(TEST_SOURCES),
-            getSource: () => of(TEST_SOURCES[0]),
-            submitImport: () => of(TEST_SUBMISSION),
-            getImportJob: () => of(TEST_JOB),
-            askSource: () => of(TEST_ASK_RESPONSE)
-          }
-        }
-      ]
+          useValue: workspaceApi,
+        },
+      ],
     }).compileComponents();
   });
 
@@ -110,10 +134,69 @@ describe('App', () => {
     fixture.detectChanges();
 
     const buttons = Array.from(
-      fixture.nativeElement.querySelectorAll('button')
+      fixture.nativeElement.querySelectorAll('button'),
     ) as HTMLButtonElement[];
     const askButton = buttons.find((button) => button.textContent?.includes('Ask source'));
 
     expect(askButton?.disabled).toBe(false);
+  });
+
+  it('should let the user select one source, ask it, and render the answer with evidence', async () => {
+    let requestedSourceId: string | null = null;
+    let requestedQuestion: string | null = null;
+    const expectedResponse: AskResponseDto = {
+      source_id: 'source-2',
+      question: 'What does the guide say?',
+      answer: 'The guide explains the current MVP wiring.',
+      grounding_status: 'grounded',
+      evidence: [
+        {
+          chunk_id: 'chunk-2',
+          chunk_index: 4,
+          text: 'The Angular workspace now loads sources and renders evidence.',
+          score: 0.88,
+          relative_path: 'guide/beta.txt',
+        },
+      ],
+    };
+
+    workspaceApi.askSource = (sourceId: string, request: { question: string }) => {
+      requestedSourceId = sourceId;
+      requestedQuestion = request.question;
+      return of(expectedResponse);
+    };
+
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const sourceRows = Array.from(
+      fixture.nativeElement.querySelectorAll('.source-row'),
+    ) as HTMLElement[];
+    sourceRows[1].click();
+    fixture.detectChanges();
+
+    const textarea = fixture.nativeElement.querySelector('#question-box') as HTMLTextAreaElement;
+    textarea.value = '  What does the guide say?  ';
+    textarea.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const askButton = (
+      Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[]
+    ).find((button) => button.textContent?.includes('Ask source'));
+    expect(askButton).toBeTruthy();
+    askButton!.click();
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(requestedSourceId).toBe('source-2');
+    expect(requestedQuestion).toBe('What does the guide say?');
+    expect(compiled.textContent).toContain('The guide explains the current MVP wiring.');
+    expect(compiled.textContent).toContain(
+      'The Angular workspace now loads sources and renders evidence.',
+    );
+    expect(compiled.textContent).toContain('guide/beta.txt');
   });
 });

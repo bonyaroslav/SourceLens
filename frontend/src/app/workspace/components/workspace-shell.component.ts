@@ -4,7 +4,7 @@ import {
   OnInit,
   ViewEncapsulation,
   computed,
-  inject
+  inject,
 } from '@angular/core';
 import { Store } from '@ngrx/store';
 
@@ -26,7 +26,7 @@ import {
   selectImportPanelViewModel,
   selectSourceListItems,
   selectSourcesError,
-  selectSourcesLoading
+  selectSourcesLoading,
 } from '../state/workspace.selectors';
 
 @Component({
@@ -34,7 +34,7 @@ import {
   imports: [ImportFormComponent, SourceListComponent, AskPanelComponent, EvidencePanelComponent],
   templateUrl: './workspace-shell.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class WorkspaceShellComponent implements OnInit {
   private readonly store = inject(Store);
@@ -54,7 +54,7 @@ export class WorkspaceShellComponent implements OnInit {
   readonly activeSourceId = computed(() => this.activeSource()?.id ?? null);
   readonly sourceCountLabel = computed(() => `${this.sources().length} sources`);
   readonly activeSourceName = computed(
-    () => this.activeSource()?.name ?? 'No active source selected'
+    () => this.activeSource()?.name ?? 'No active source selected',
   );
 
   ngOnInit(): void {

@@ -83,7 +83,7 @@ import { AskResultViewModel } from '../workspace.models';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AskPanelComponent {
   @Input() activeSourceName = 'No active source';

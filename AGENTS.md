@@ -36,6 +36,7 @@ Examples:
 - Naming work: `Source Lens` is used consistently.
 - Architecture work: `README.md` and `plan.md` do not contradict each other.
 - Early backend work: one deterministic run path, one smoke check, one verification command.
+- Frontend wiring work: one source-loading check, one grounded ask check, one handled not-ready or empty-state check.
 - Feature work: one happy-path check, one failure or weak-evidence check.
 
 ## Commands

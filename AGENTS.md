@@ -40,10 +40,8 @@ Examples:
 
 ## Commands
 
-- Canonical commands do not exist yet.
-- Early implementation should add stable `setup`, `dev`, `test`, `lint`, `typecheck`, and `eval` entrypoints.
-- Add them in the first implementation scaffold or first real feature PR.
-- After they exist, use them instead of ad hoc local command sequences.
+- Canonical commands exist at the repo root: `setup`, `dev`, `test`, `lint`, `typecheck`, `eval`, and the opt-in `live-deps` smoke check.
+- Use the stable entrypoints in `tools/` instead of ad hoc local command sequences.
 
 ## Scope
 

@@ -83,7 +83,7 @@ These are deferred until after the backend vertical slice is complete:
 - Local data root: repo-local ignored storage
 - Chunk vectors and retrieval payload remain in Qdrant for this milestone
 - Do not add a normalized chunk table in SQLite in this milestone
-- `GET /health` stays shallow; dependency proof belongs in deterministic commands and evals
+- `GET /health` stays shallow; dependency proof belongs in deterministic verification commands, with `eval` as the canonical regression gate and `live-deps` as the separate opt-in Ollama smoke check
 
 ## Stable Interfaces
 
@@ -168,6 +168,7 @@ The backend vertical slice is done only when all of the following are true:
    - `eval` checks one grounded happy path through the real import flow
    - `eval` checks one insufficient-evidence path
    - `eval` exits non-zero on failure
+   - live Ollama dependency proof remains a separate opt-in smoke command, not part of the canonical `eval` gate
 
 8. Docs are aligned:
    - `plan.md` reflects only the locked backend architecture and done criteria

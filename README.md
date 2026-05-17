@@ -115,7 +115,7 @@ Ask things like:
 
 ## MVP scope
 
-### In progress now
+### Implemented in the current backend slice
 - backend scaffold with deterministic local commands
 - API health endpoint
 - repo-local runtime config and data bootstrap
@@ -132,9 +132,13 @@ Ask things like:
 - grounded answer generation
 - answer + evidence snippets
 
-### Next in the MVP slice
-- backend MVP closeout through deterministic verification and doc alignment
-- keep the static Angular workspace prototype in `frontend/` design-only until backend wiring is ready
+### Verified now
+- deterministic verification through `.\tools\test.ps1`, `.\tools\lint.ps1`, `.\tools\typecheck.ps1`, and `.\tools\eval.ps1`
+- separate opt-in live Ollama smoke proof through `.\tools\live-deps.ps1`
+
+### Next in the MVP roadmap
+- start the Angular wiring milestone against the backend slice
+- keep the static Angular workspace prototype in `frontend/` design-led until backend wiring starts
 
 ### Intentionally not overbuilt yet
 - deep crawling

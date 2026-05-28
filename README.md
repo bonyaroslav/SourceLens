@@ -122,7 +122,7 @@ Ask things like:
 - SQLite metadata repositories for sources and import jobs
 - Ollama chat and embedding adapters
 - Qdrant local vector storage bootstrap with dimension checks
-- deterministic local dependency proof commands for the Phase 2 stack
+- deterministic local dependency proof commands for the pinned local model and storage stack
 - local file import API with request-time snapshotting and queued background jobs
 - import status polling through `GET /import-jobs/{job_id}`
 - parser support for txt / md / pdf / html / htm
@@ -278,12 +278,8 @@ Import source → Parse text → Split into chunks → Create embeddings → Sto
 
 ## Roadmap direction
 
-These are product-facing milestones after the current backend slice. Some backend prerequisites already exist in the API and local tooling.
+These are product-facing directions after the current wired MVP slice.
 
-- [ ] source catalog MVP
-- [ ] local file/folder import
-- [ ] grounded source chat
-- [ ] evidence panel
 - [ ] stricter grounding mode
 - [ ] retrieval tuning
 - [ ] source memory cards

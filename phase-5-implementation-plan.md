@@ -1,6 +1,10 @@
-# Phase 5 Implementation Plan
+# Historical Implementation Note: Eval Baseline Slice
 
-This file turns the locked Phase 5 architecture in `plan.md` into the next executable quality slice for this repo.
+This file is a preserved implementation note from an earlier numbered-phase planning pass.
+
+It is no longer the active plan for the repo. Use `plan.md` for current scope and `README.md` for current product positioning.
+
+The eval baseline described below has already shipped in the repo, so treat the remaining content as historical context rather than forward-looking instructions.
 
 ## Goal
 

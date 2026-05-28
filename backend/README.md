@@ -19,9 +19,9 @@ Current scope:
 - ask flow retrieves source-scoped evidence from Qdrant and returns grounded answers
 - eval runner with one grounded fixture case and one insufficient-evidence case
 - deterministic PowerShell commands from the repo root
-- repo-specific Phase 2 implementation plan in `..\phase-2-implementation-plan.md`
+- archived backend foundation notes in `..\phase-2-implementation-plan.md`
 
-This is the backend-only milestone. Frontend work is intentionally deferred.
+This backend slice now supports the wired Angular MVP experience described in the repo-root docs.
 
 Windows-first commands from the repo root:
 
@@ -36,6 +36,6 @@ Windows-first commands from the repo root:
 
 `setup.ps1` bootstraps a repo-local helper environment for `uv` under `.tools\bootstrap` and then syncs the backend project dependencies.
 
-`bootstrap-models.ps1` pulls the pinned Phase 2 Ollama chat and embedding models through the local Ollama HTTP API.
+`bootstrap-models.ps1` pulls the pinned Ollama chat and embedding models through the local Ollama HTTP API.
 
 `eval.ps1` is the deterministic backend MVP eval gate. `live-deps.ps1` is the separate opt-in Ollama dependency proof command for chat and embeddings.

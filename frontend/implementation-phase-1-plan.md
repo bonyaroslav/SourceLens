@@ -1,4 +1,10 @@
-# Source Lens Frontend Phase 1 Plan
+# Historical Implementation Note: Frontend Wiring Slice
+
+This file is a preserved implementation note from an earlier numbered-phase planning pass.
+
+It is no longer the active plan for the repo. Use `..\plan.md` for current scope and `..\README.md` for current product positioning.
+
+The source loading and import wiring described below has already shipped in the repo, so treat the remaining content as historical context rather than forward-looking instructions.
 
 ## Summary
 

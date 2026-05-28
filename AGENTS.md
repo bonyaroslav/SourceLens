@@ -53,3 +53,17 @@ Examples:
 
 - Review non-trivial code or architecture-doc diffs.
 - Treat changes to naming, scope, architecture, dependencies, storage boundaries, ingestion, retrieval, or answer behavior as non-trivial.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs for this repo live in GitHub Issues for `bonyaroslav/SourceLens`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+This repo uses the default triage label vocabulary. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This is a single-context repo. See `docs/agents/domain.md`.

@@ -65,6 +65,10 @@ export class WorkspaceShellComponent implements OnInit {
     this.store.dispatch(workspaceActions.setActiveSource({ sourceId }));
   }
 
+  onRetrySources(): void {
+    this.store.dispatch(workspaceActions.loadSources());
+  }
+
   onSubmitImport(request: ImportSourceRequest): void {
     this.store.dispatch(workspaceActions.submitImport({ request }));
   }

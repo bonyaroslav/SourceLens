@@ -36,6 +36,7 @@
         [loading]="sourcesLoading()"
         [error]="sourcesError()"
         (selectSource)="onSelectSource($event)"
+        (retryLoad)="onRetrySources()"
       ></app-source-list>
     </section>
 
@@ -55,6 +56,7 @@
       <app-evidence-panel
         [activeSource]="activeSource()"
         [submitting]="askSubmitting()"
+        [error]="askError()"
         [result]="askResult()"
         [evidenceItems]="evidenceItems()"
         [hasInsufficientEvidence]="hasInsufficientEvidence()"

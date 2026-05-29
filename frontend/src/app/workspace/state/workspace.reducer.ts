@@ -63,10 +63,12 @@ export const workspaceFeature = createFeature({
       (state): WorkspaceState => ({
         ...state,
         import: {
-          ...state.import,
           submitting: true,
           error: null,
+          activeSubmission: null,
+          activeJob: null,
         },
+        ask: resetAskState(state.ask),
       }),
     ),
     on(

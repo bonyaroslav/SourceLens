@@ -19,6 +19,46 @@ const TEST_RESULT = {
 };
 
 describe('workspace reducer', () => {
+  it('clears stale ask state as soon as a new import is queued', () => {
+    const state = {
+      ...initialWorkspaceState,
+      ask: {
+        submitting: false,
+        error: 'Old ask error',
+        result: TEST_RESULT,
+      },
+      import: {
+        ...initialWorkspaceState.import,
+        activeSubmission: {
+          source_id: 'old-source',
+          job_id: 'old-job',
+          status: 'failed',
+        },
+        activeJob: {
+          job_id: 'old-job',
+          source_id: 'old-source',
+          status: 'failed',
+          started_at: '2026-04-12T10:00:00Z',
+          finished_at: '2026-04-12T10:05:00Z',
+          error_message: 'Old import failed.',
+        },
+      },
+    };
+
+    const nextState = workspaceFeature.reducer(
+      state,
+      workspaceActions.submitImport({ request: { path: 'C:\\docs\\plan.md' } }),
+    );
+
+    expect(nextState.ask).toEqual({
+      submitting: false,
+      error: null,
+      result: null,
+    });
+    expect(nextState.import.activeSubmission).toBeNull();
+    expect(nextState.import.activeJob).toBeNull();
+  });
+
   it('clears the previous ask result when a new ask starts', () => {
     const state = {
       ...initialWorkspaceState,

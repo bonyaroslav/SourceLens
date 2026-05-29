@@ -48,6 +48,20 @@ describe('SourceListComponent', () => {
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Catalog request failed.');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Try loading sources again');
+  });
+
+  it('emits a retry event when the source catalog request fails', () => {
+    const fixture = TestBed.createComponent(SourceListComponent);
+    fixture.componentRef.setInput('error', 'Catalog request failed.');
+    fixture.detectChanges();
+
+    let retries = 0;
+    fixture.componentInstance.retryLoad.subscribe(() => retries += 1);
+
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+
+    expect(retries).toBe(1);
   });
 
   it('emits the selected source id for click interaction', () => {

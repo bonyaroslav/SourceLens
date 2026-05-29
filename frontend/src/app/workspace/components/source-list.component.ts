@@ -1,16 +1,27 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 
 import { SourceListItemViewModel } from '../workspace.models';
 
 @Component({
   selector: 'app-source-list',
-  imports: [TagModule],
+  imports: [ButtonModule, TagModule],
   template: `
     @if (loading) {
       <p class="panel-empty">Loading sources from the backend...</p>
     } @else if (error) {
-      <p class="panel-empty is-error">{{ error }}</p>
+      <div class="panel-empty is-error">
+        <p>{{ error }}</p>
+        <button
+          pButton
+          type="button"
+          label="Try loading sources again"
+          severity="secondary"
+          [outlined]="true"
+          (click)="retryLoad.emit()"
+        ></button>
+      </div>
     } @else if (sources.length === 0) {
       <p class="panel-empty">
         No imported sources yet. Queue a file or folder path to create the first workspace source.
@@ -58,4 +69,5 @@ export class SourceListComponent {
   @Input() loading = false;
   @Input() error: string | null = null;
   @Output() readonly selectSource = new EventEmitter<string>();
+  @Output() readonly retryLoad = new EventEmitter<void>();
 }

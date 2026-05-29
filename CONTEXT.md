@@ -26,8 +26,9 @@ Source Lens is a local-first knowledge workspace for importing private sources a
 - Backend runtime: Python
 - Frontend: Angular + TypeScript
 - Model runtime: Ollama
-- Storage direction: PostgreSQL + pgvector
-- Metadata and retrieval data should remain isolated behind repository and vector store boundaries
+- Vector storage: Qdrant local mode
+- Metadata storage: SQLite behind repository or adapter boundaries
+- Retrieval and metadata concerns remain isolated behind vector store and repository boundaries
 - Vector dimensionality must not be hardcoded
 
 ## Working Rules

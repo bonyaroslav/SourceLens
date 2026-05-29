@@ -1,5 +1,12 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
@@ -12,6 +19,12 @@ interface ImportFormModel {
   path: FormControl<string>;
   name: FormControl<string>;
   description: FormControl<string>;
+}
+
+function requiredTrimmedPath(control: AbstractControl<string>): ValidationErrors | null {
+  return typeof control.value === 'string' && control.value.trim().length > 0
+    ? null
+    : { requiredTrimmedPath: true };
 }
 
 @Component({
@@ -27,6 +40,10 @@ interface ImportFormModel {
           formControlName="path"
           placeholder="C:\\Users\\me\\Documents\\notes.md"
         />
+        <p class="field-hint">
+          Enter a local file or folder path from this machine. Browser upload is intentionally out
+          of scope for the current MVP slice.
+        </p>
       </div>
 
       <div class="field-grid">
@@ -72,7 +89,9 @@ interface ImportFormModel {
     </form>
 
     @if (showPathError) {
-      <p class="form-feedback is-error">A local file or folder path is required.</p>
+      <p class="form-feedback is-error">
+        Enter a real local file or folder path before queueing the import.
+      </p>
     }
 
     @if (importState.error) {
@@ -110,7 +129,7 @@ export class ImportFormComponent {
   @Output() readonly submitImport = new EventEmitter<ImportSourceRequest>();
 
   readonly form = new FormGroup<ImportFormModel>({
-    path: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    path: new FormControl('', { nonNullable: true, validators: [Validators.required, requiredTrimmedPath] }),
     name: new FormControl('', { nonNullable: true }),
     description: new FormControl('', { nonNullable: true }),
   });

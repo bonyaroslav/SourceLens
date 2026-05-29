@@ -51,10 +51,15 @@ import {
           <h3>Retrieving evidence</h3>
           <p>The latest ask request is in flight for this source.</p>
         </div>
+      } @else if (error) {
+        <div class="evidence-placeholder">
+          <h3>Request failed</h3>
+          <p>{{ error }}</p>
+        </div>
       } @else if (!result) {
         <div class="evidence-placeholder">
-          <h3>No answer yet</h3>
-          <p>Ask the active source to render evidence snippets in this panel.</p>
+          <h3>{{ emptyStateTitle }}</h3>
+          <p>{{ emptyStateBody }}</p>
         </div>
       } @else if (hasInsufficientEvidence) {
         <div class="evidence-placeholder">
@@ -95,7 +100,32 @@ import {
 export class EvidencePanelComponent {
   @Input() activeSource: ActiveSourceViewModel | null = null;
   @Input() submitting = false;
+  @Input() error: string | null = null;
   @Input() result: AskResultViewModel | null = null;
   @Input() evidenceItems: EvidenceItemViewModel[] = [];
   @Input() hasInsufficientEvidence = false;
+
+  get emptyStateTitle(): string {
+    if (this.activeSource?.statusLabel === 'Failed') {
+      return 'Import failed';
+    }
+
+    if (this.activeSource && !this.activeSource.isAskable) {
+      return 'Source not ready';
+    }
+
+    return 'No answer yet';
+  }
+
+  get emptyStateBody(): string {
+    if (this.activeSource?.statusLabel === 'Failed') {
+      return 'This source never became ready. Re-import the local path or switch to another source to inspect evidence.';
+    }
+
+    if (this.activeSource && !this.activeSource.isAskable) {
+      return 'This source is still preparing. Evidence will appear here after indexing finishes and an ask request completes.';
+    }
+
+    return 'Ask the active source to render evidence snippets in this panel.';
+  }
 }

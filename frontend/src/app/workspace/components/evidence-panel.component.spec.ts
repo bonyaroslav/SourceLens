@@ -64,6 +64,33 @@ describe('EvidencePanelComponent', () => {
     );
   });
 
+  it('renders failed-source guidance before the source is ready to ask', () => {
+    const fixture = TestBed.createComponent(EvidencePanelComponent);
+    fixture.componentRef.setInput('activeSource', {
+      ...ACTIVE_SOURCE,
+      statusLabel: 'Failed',
+      statusSeverity: 'danger',
+      isAskable: false,
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Import failed');
+    expect(compiled.textContent).toContain('Re-import the local path or switch to another source');
+  });
+
+  it('renders a request-failure state separately from insufficient evidence', () => {
+    const fixture = TestBed.createComponent(EvidencePanelComponent);
+    fixture.componentRef.setInput('activeSource', ACTIVE_SOURCE);
+    fixture.componentRef.setInput('error', 'The ask request failed. Backend unavailable.');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Request failed');
+    expect(compiled.textContent).toContain('The ask request failed. Backend unavailable.');
+    expect(compiled.textContent).not.toContain('Insufficient evidence');
+  });
+
   it('renders chunk index, raw score, and evidence text', () => {
     const fixture = TestBed.createComponent(EvidencePanelComponent);
     fixture.componentRef.setInput('activeSource', ACTIVE_SOURCE);

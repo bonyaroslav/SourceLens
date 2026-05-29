@@ -109,6 +109,10 @@ export class AskPanelComponent {
       return 'The latest question is in flight. Duplicate submissions stay blocked until it completes.';
     }
 
+    if (this.error) {
+      return 'The latest ask request failed. Fix the request or source state, then ask again.';
+    }
+
     if (this.result?.groundingStatus === 'insufficient_evidence') {
       return 'The last request completed, but the source did not contain enough evidence to support the answer.';
     }
@@ -123,6 +127,10 @@ export class AskPanelComponent {
   get answerMeta(): string {
     if (this.submitting) {
       return 'Submitting';
+    }
+
+    if (this.error) {
+      return 'Request failed';
     }
 
     if (this.result) {

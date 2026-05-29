@@ -88,7 +88,16 @@ export const selectAskDisabledReason = createSelector(
     }
 
     if (!canAsk) {
-      return `This source is ${toSourceStatusMeta(source.import_status).label.toLowerCase()}. Ask stays disabled until the import completes.`;
+      switch (source.import_status) {
+        case 'queued':
+          return 'This source is queued for import. Ask stays disabled until indexing begins and finishes.';
+        case 'running':
+          return 'This source is still indexing. Ask stays disabled until the source becomes ready.';
+        case 'failed':
+          return 'This source failed during import. Re-import the path or choose another source before asking.';
+        default:
+          return `This source is ${toSourceStatusMeta(source.import_status).label.toLowerCase()}. Ask stays disabled until the source becomes ready.`;
+      }
     }
 
     return 'This source is ready. Ask a focused question to retrieve a grounded answer and visible evidence.';

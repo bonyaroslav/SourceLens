@@ -58,4 +58,22 @@ describe('AskPanelComponent', () => {
     expect(compiled.textContent).toContain('What changed?');
     expect(compiled.textContent).toContain('Grounded answer from the selected source.');
   });
+
+  it('keeps insufficient-evidence copy distinct from request failures', () => {
+    const fixture = TestBed.createComponent(AskPanelComponent);
+    fixture.componentRef.setInput('activeSourceName', 'plan.md');
+    fixture.componentRef.setInput('canAsk', true);
+    fixture.componentRef.setInput('disabledReason', 'Ready');
+    fixture.componentRef.setInput('result', {
+      ...TEST_RESULT,
+      groundingStatus: 'insufficient_evidence',
+      groundingLabel: 'Insufficient evidence',
+      groundingSeverity: 'warn',
+    });
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'did not contain enough evidence',
+    );
+  });
 });

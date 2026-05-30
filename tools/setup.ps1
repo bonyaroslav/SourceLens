@@ -65,4 +65,4 @@ finally {
 }
 
 Write-Host "Backend and frontend dependencies are ready."
-Write-Host "Use .\tools\dev.ps1 to start the API and npm start in .\frontend for the Angular UI."
+Write-Host "Use .\tools\dev.ps1 to start the API and npm run dev in .\frontend for the React + Vite UI."

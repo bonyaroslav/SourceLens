@@ -206,9 +206,9 @@ Windows-first commands from the repo root:
 - `.\tools\eval.ps1`
 - `.\tools\live-deps.ps1`
 
-Frontend workspace commands inside `frontend\` are currently transitional:
+Frontend workspace commands inside `frontend\`:
 
-- `npm start`
+- `npm run dev`
 - `npm run test:ci`
 - `npm run lint`
 - `npm run typecheck`

@@ -1,22 +1,20 @@
-# Source Lens Angular Wiring Milestone Plan
+# Source Lens React MVP Workspace Plan
 
 ## Summary
 
-`plan.md` is the forward-looking source of truth for the current milestone.
+`plan.md` defines the active MVP milestone and its locked implementation rules.
 
 The current milestone is:
 
-- finish the **Angular wiring milestone**
-- wire the existing Angular workspace to the shipped backend slice
-- keep the scope to **one selected source**, grounded QA, and visible evidence
+- establish the React MVP workspace
+- preserve the shipped Python backend seam
+- keep the scope to one selected source, grounded QA, and visible evidence
 
-A local Angular workspace exists under `frontend/` and is part of this milestone's done criteria.
-
-This plan intentionally avoids shipped-history notes, phase retrospectives, and implementation logs.
+This plan intentionally avoids shipped-history notes, migration logs, and retrospective detail.
 
 ## Locked Product Scope
 
-The Angular wiring milestone for **Source Lens** includes:
+The current MVP milestone for **Source Lens** includes:
 
 - local-first knowledge workspace backend
 - one selected source at a time
@@ -36,7 +34,7 @@ The Angular wiring milestone for **Source Lens** includes:
   - normalize text
   - chunk text
   - generate embeddings
-  - store metadata and vectors
+  - store metadata and retrieval data
 - source query flow:
   - list sources
   - select one active source in the UI
@@ -44,7 +42,7 @@ The Angular wiring milestone for **Source Lens** includes:
   - retrieve top evidence
   - generate grounded answer
   - return evidence snippets
-- Angular workspace flow:
+- React workspace flow:
   - load sources from `GET /sources`
   - surface loading, empty, and request-error states
   - block ask when the selected source is not ready
@@ -56,7 +54,7 @@ The Angular wiring milestone for **Source Lens** includes:
 
 ## Explicitly Out Of Scope
 
-These are deferred until after the Angular wiring milestone is complete:
+These are deferred until after the current React MVP workspace milestone is complete:
 
 - browser upload
 - multi-source querying
@@ -73,21 +71,20 @@ These are deferred until after the Angular wiring milestone is complete:
 
 - Product name: `Source Lens`
 - Backend runtime: Python
-- Frontend target: Angular + TypeScript
+- Frontend target: React + TypeScript
+- Frontend toolchain: Vite
 - Model runtime: Ollama
 - Chat model default: `qwen3:4b`
 - Embedding model default: `qwen3-embedding:0.6b`
 - Model tags must be pinned and must not use `latest`
 - Embedding and chat models are separate concerns
 - Vector dimensionality must be derived from the active embedding model
-- Vector storage: Qdrant local mode
-- Metadata storage: SQLite behind repository/adapter abstractions
+- Storage direction: PostgreSQL + pgvector
+- Metadata and retrieval boundaries remain isolated behind repository or adapter abstractions
 - Query scope: exactly one selected source at a time
 - Import execution: async job-based
 - Query execution: synchronous
 - Local data root: repo-local ignored storage
-- Chunk vectors and retrieval payload remain in Qdrant for this milestone
-- Do not add a normalized chunk table in SQLite in this milestone
 - `GET /health` stays shallow; dependency proof belongs in deterministic verification commands, with `eval` as the canonical regression gate and `live-deps` as the separate opt-in Ollama smoke check
 
 ## Stable Interfaces
@@ -105,7 +102,7 @@ These are the canonical local commands for the milestone:
 
 ### API
 
-The backend slice exposed to the Angular workspace is:
+The backend slice exposed to the React workspace is:
 
 - `GET /health`
 - `POST /sources/import`
@@ -116,13 +113,13 @@ The backend slice exposed to the Angular workspace is:
 
 ### Storage Boundaries
 
-- SQLite stores source metadata and import-job metadata
-- Qdrant stores chunk vectors and retrieval payload used during answering
+- Metadata persistence and retrieval persistence may share PostgreSQL, but they must remain isolated behind stable boundaries
+- Embedding profile and vector shape rules must stay explicit
 - Domain services must go through repository or adapter boundaries
 
 ## Definition Of Done
 
-The Angular wiring milestone is done only when all of the following are true:
+The current React MVP workspace milestone is done only when all of the following are true:
 
 1. Deterministic commands exist and are the canonical way to run and verify the repo slice:
    - `setup`
@@ -154,10 +151,10 @@ The Angular wiring milestone is done only when all of the following are true:
 5. The backend import pipeline works end to end:
    - validates input
    - snapshots content before background processing
-   - stores source metadata and import-job metadata in SQLite
+   - stores source metadata and import-job metadata behind stable persistence boundaries
    - parses and chunks supported content
    - embeds through Ollama
-   - stores vectors in Qdrant
+   - stores retrieval data with explicit embedding-shape handling
    - marks jobs and sources `queued`, `running`, `completed`, or `failed`
    - reconciles interrupted jobs on startup
 
@@ -169,7 +166,7 @@ The Angular wiring milestone is done only when all of the following are true:
    - returns answer plus evidence snippets
    - returns insufficient-evidence behavior when evidence is absent
 
-7. The Angular workspace is wired to the backend slice end to end:
+7. The React workspace is wired to the backend slice end to end:
    - source list loads from `GET /sources`
    - one active source can be selected in the UI
    - ask submits to `POST /sources/{source_id}/ask`
@@ -184,8 +181,9 @@ The Angular wiring milestone is done only when all of the following are true:
    - live Ollama dependency proof remains a separate opt-in smoke command, not part of the canonical `eval` gate
 
 9. Docs are aligned:
-   - `plan.md` reflects the Angular wiring milestone scope and done criteria
-   - `README.md` describes the wired frontend and backend usage without widening scope
+   - `CONTEXT.md` reflects the current architecture direction
+   - `plan.md` reflects the current React MVP milestone scope and done criteria
+   - `README.md` describes the current frontend and backend direction without widening scope
    - `AGENTS.md` remains consistent with the current MVP slice
 
 ## Acceptance Scenarios
@@ -215,7 +213,7 @@ The Angular wiring milestone is done only when all of the following are true:
 - asking a non-ready source returns a clear conflict or readiness error
 - insufficient-evidence path returns the locked contract
 
-### Angular Wiring
+### React Workspace
 
 - the source list shows loading while `GET /sources` is in flight
 - an empty catalog shows a deliberate empty state
@@ -232,7 +230,7 @@ The Angular wiring milestone is done only when all of the following are true:
 
 ## Next Step After This Milestone
 
-After the Angular wiring milestone is complete:
+After the current React MVP workspace milestone is complete:
 
 - evaluate the next MVP slice without widening beyond one selected source by default
 - keep future plans separate from this file's locked milestone scope
@@ -241,7 +239,7 @@ After the Angular wiring milestone is complete:
 
 For any new idea, ask:
 
-1. does it finish the Angular wiring milestone?
+1. does it finish the current React MVP workspace milestone?
 2. does it keep the system simpler?
 3. does it preserve clear storage and service boundaries?
 

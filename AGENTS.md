@@ -4,18 +4,21 @@ Source Lens is a local-first knowledge workspace for importing private sources a
 
 ## Source Of Truth
 
-- `plan.md` defines architecture, MVP scope, and locked implementation rules.
-- `README.md` defines product positioning.
-- Keep docs aligned when naming, stack, or scope changes.
+- `docs/afk-handoff.md` is the fastest pickup guide for a fresh session or new machine.
+- `CONTEXT.md` defines the current architecture direction, stack, and domain vocabulary.
+- `plan.md` defines the active MVP milestone, implementation rules, and done criteria.
+- `README.md` defines product positioning and user-facing framing.
+- Keep these docs aligned when naming, stack, scope, or milestone language changes.
 
 ## Locked Decisions
 
 - Product name: `Source Lens`.
 - Backend: Python.
-- Frontend: Angular + TypeScript.
+- Frontend: React + TypeScript.
+- Frontend toolchain: Vite.
 - Model runtime: Ollama.
-- Vector storage: Qdrant local mode.
-- Metadata storage: SQLite behind a repository or adapter abstraction.
+- Storage direction: PostgreSQL + pgvector.
+- Keep metadata and retrieval concerns behind repository or adapter abstractions.
 - MVP default: one selected source, local import, grounded QA, visible evidence.
 - Do not hardcode vector dimensionality.
 
@@ -24,7 +27,7 @@ Source Lens is a local-first knowledge workspace for importing private sources a
 - Start non-trivial work with a short plan and explicit acceptance checks.
 - Prefer small vertical slices over speculative framework work.
 - If a mistake repeats, fix repo instructions or scripts instead of relying on chat memory.
-- Keep instructions short; do not duplicate `plan.md` here.
+- Keep instructions short; do not duplicate `CONTEXT.md` or `plan.md` here.
 
 ## Verification
 
@@ -34,7 +37,7 @@ Source Lens is a local-first knowledge workspace for importing private sources a
 
 Examples:
 - Naming work: `Source Lens` is used consistently.
-- Architecture work: `README.md` and `plan.md` do not contradict each other.
+- Architecture work: `CONTEXT.md`, `plan.md`, and `README.md` do not contradict each other.
 - Early backend work: one deterministic run path, one smoke check, one verification command.
 - Frontend wiring work: one source-loading check, one grounded ask check, one handled not-ready or empty-state check.
 - Feature work: one happy-path check, one failure or weak-evidence check.

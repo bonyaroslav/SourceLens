@@ -21,6 +21,8 @@ Read this file first, then read:
 - Model runtime: Ollama
 - Storage direction: PostgreSQL + pgvector
 - MVP scope: one selected source, local import, grounded question answering, visible evidence
+- Angular is removed from the active product direction
+- Legacy SQLite and Qdrant adapters may still exist in the backend implementation, but they are transitional internals and not the target architecture
 
 ## Source Of Truth
 
@@ -39,32 +41,24 @@ If an older file, local code path, or issue still mentions Angular, SQLite, or Q
 - Respect `Blocked by` dependencies.
 - Do not widen scope opportunistically.
 
-## Preferred Issue Chain
+## Preferred Issue State
 
-The intended React implementation chain is:
-
-1. `#16` Rewrite the repo source of truth for the React stack
-2. `#17` Replace the Angular workspace with a Vite + React app shell
-3. `#18` Deliver the routed React workspace with source list states
-4. `#19` Add the React ask flow with grounded answer and evidence
-5. `#20` Apply the light liquid-glass design system to the MVP workspace
-6. `#21` Restore minimal happy-path verification for the React MVP
-
-Conflicting issues such as `#8`, `#10`, and `#12` should not be treated as the active implementation path unless a human explicitly reactivates them.
+- Keep only currently actionable work open in GitHub Issues.
+- Close or archive stale Angular, SQLite, and Qdrant tracking so the queue reflects the active React path.
+- Keep at most one implementation issue marked `ready-for-agent` at a time unless parallel execution is explicitly intended.
 
 ## Current Repo Reality
 
-- The docs now point to the React + PostgreSQL direction.
-- The local frontend codebase is still transitional and still contains Angular tooling today.
-- Frontend script names in `frontend/package.json` are still transitional.
-- The GitHub issue queue may still need label cleanup so only one active issue is ready at a time.
+- The repo uses a React + TypeScript + Vite frontend workspace.
+- The current frontend implementation is still shell-level and is not yet wired end to end to source loading and ask behavior.
+- The backend currently keeps legacy SQLite and Qdrant adapters behind repository and vector-store boundaries.
+- The docs treat PostgreSQL + pgvector as the target storage direction and the legacy adapters as transitional implementation detail.
 
 ## Known Blockers And Risks
 
 - PowerShell script execution may require an execution-policy bypass on a new machine.
-- Backend `test` and `typecheck` were previously blocked by a local Python executable access error in `backend/.venv`.
-- Frontend lint currently reports formatting noise in the existing workspace.
-- Do not assume the repo is fully AFK-ready until the execution path and issue labels are cleaned up.
+- Storage migration work has not landed yet, so new backend work should avoid deepening the legacy SQLite and Qdrant dependency surface.
+- Do not assume the repo is ready for new requirements until docs, tracker state, and stale files are aligned.
 
 ## Preflight Checklist
 
@@ -78,9 +72,9 @@ Before starting the next implementation issue, confirm:
 
 ## Suggested Next Steps
 
-1. Clean the GitHub issue queue so only the React path remains active.
-2. Fix the local unattended verification path.
-3. Start with the first unblocked issue in the chain.
+1. Keep the GitHub issue queue aligned with the current React direction.
+2. Remove or archive stale repo files that still advertise old implementation plans.
+3. Start the next requirement only after the repo docs and tracker describe one consistent state.
 
 ## Concise Prompt For A Fresh Session
 

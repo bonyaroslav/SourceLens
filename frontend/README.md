@@ -1,6 +1,6 @@
 # Source Lens Frontend
 
-The frontend workspace is now a React + TypeScript single-page app built with Vite. This slice replaces the Angular shell, keeps the Python backend as the integration seam, and establishes the route and server-state foundations for the MVP workspace.
+The frontend workspace is a React + TypeScript single-page app built with Vite. Angular is removed from the active repo direction. The current frontend implementation is still a React shell that keeps the Python backend as the integration seam while the remaining source-loading and ask-flow slices are completed.
 
 ## Run locally
 

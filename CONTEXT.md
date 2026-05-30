@@ -31,6 +31,12 @@ Source Lens is a local-first knowledge workspace for importing private sources a
 - Metadata and retrieval concerns should remain isolated behind repository and vector store boundaries
 - Vector dimensionality must not be hardcoded
 
+## Transitional Reality
+
+- Angular is no longer part of the active repo direction.
+- The current backend implementation still contains legacy SQLite and Qdrant adapters behind the repository and vector-store boundaries.
+- Treat those legacy adapters as transitional implementation detail, not as the architecture target for new work.
+
 ## Working Rules
 
 - Prefer small vertical slices over speculative framework work

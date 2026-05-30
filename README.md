@@ -130,9 +130,8 @@ Ask things like:
 - embedding-based retrieval for one selected source
 - grounded answer generation
 - answer plus evidence snippets
-- React workspace aligned to the backend source list and ask flow
-- single-source selection in the UI
-- handled loading, empty, error, and source-not-ready ask states
+- React + Vite workspace shell and route structure
+- TanStack Query and router foundations for the workspace feature
 
 ### Verified now
 - deterministic verification through `.\tools\test.ps1`, `.\tools\lint.ps1`, `.\tools\typecheck.ps1`, and `.\tools\eval.ps1`
@@ -141,6 +140,11 @@ Ask things like:
 ### Next in the MVP roadmap
 - finish the React MVP workspace slices without widening beyond one selected source
 - keep deeper retrieval, ranking, and multi-source work deferred until after the MVP slice hardens
+
+### Transitional implementation note
+- Angular is no longer part of the active repo direction.
+- The current backend implementation still contains legacy SQLite and Qdrant adapters behind stable boundaries.
+- Those legacy adapters should be treated as transitional internals until the storage migration lands.
 
 ### Intentionally not overbuilt yet
 - deep crawling
@@ -290,15 +294,7 @@ These are product-facing directions after the current MVP slice.
 
 ## Screenshots / demo
 
-> Add the first real screenshot or GIF as soon as the vertical slice works.
->
-> Best current demo: source list, selected source, grounded answer, and evidence snippets.
-
-```html
-<p align="center">
-  <img src="./docs/demo.gif" alt="Source Lens demo" width="920">
-</p>
-```
+Add the first real screenshot or GIF when the wired React workspace is in place.
 
 ---
 

@@ -87,6 +87,12 @@ These are deferred until after the current React MVP workspace milestone is comp
 - Local data root: repo-local ignored storage
 - `GET /health` stays shallow; dependency proof belongs in deterministic verification commands, with `eval` as the canonical regression gate and `live-deps` as the separate opt-in Ollama smoke check
 
+## Transitional Implementation Note
+
+- Angular is removed from the active repo direction.
+- The current backend implementation still uses legacy SQLite and Qdrant adapters behind the locked boundaries.
+- Until the storage migration is explicitly scheduled, new work should avoid deepening those legacy implementation details.
+
 ## Stable Interfaces
 
 ### Commands

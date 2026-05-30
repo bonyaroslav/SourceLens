@@ -15,13 +15,16 @@ Current scope:
 - request-time source snapshotting and queued local import jobs
 - local file and folder import
 - parser support for `.txt`, `.md`, `.pdf`, `.html`, and `.htm`
-- source catalog reads from SQLite metadata
-- ask flow retrieves source-scoped evidence from Qdrant and returns grounded answers
+- source catalog and import jobs remain behind repository boundaries
+- ask flow retrieves source-scoped evidence through the vector-store boundary and returns grounded answers
 - eval runner with one grounded fixture case and one insufficient-evidence case
 - deterministic PowerShell commands from the repo root
-- archived backend foundation notes in `..\phase-2-implementation-plan.md`
 
-This backend slice now supports the wired Angular MVP experience described in the repo-root docs.
+Current implementation note:
+
+- Angular is no longer part of the active repo direction.
+- The backend still contains legacy SQLite and Qdrant adapters behind stable boundaries.
+- New work should not expand those legacy adapters as the target architecture.
 
 Windows-first commands from the repo root:
 

@@ -12,3 +12,4 @@ backend/tests/__pycache__/
 backend/**/__pycache__/
 backend/**/*.py[cod]
 pytest-cache-files-*/
+frontend/**/*.tsbuildinfo

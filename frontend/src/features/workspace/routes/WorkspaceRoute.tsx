@@ -21,8 +21,8 @@ export function WorkspaceRoute() {
         <p className="workspace-shell__eyebrow">Source Lens MVP</p>
         <h1>React workspace shell</h1>
         <p className="workspace-shell__intro">
-          The Angular shell has been removed. This React + Vite workspace is the new frontend
-          foundation for the single-source grounded QA flow.
+          This React + Vite workspace is the current frontend foundation for the single-source
+          grounded QA flow.
         </p>
         <div className="workspace-shell__actions">
           <Link
@@ -44,7 +44,7 @@ export function WorkspaceRoute() {
         <ShellPanel
           eyebrow="Backend seam"
           title="Python API remains the contract"
-          body="Later slices wire real source loading and ask behavior through this seam without reintroducing framework overlap."
+          body="Follow-on slices wire real source loading and ask behavior through this seam without widening the current MVP."
         >
           <dl className="detail-list">
             <div>
@@ -88,7 +88,7 @@ export function WorkspaceRoute() {
         <ShellPanel
           eyebrow="Next API wiring"
           title="Ready for source list and ask slices"
-          body="React Router and TanStack Query are already in place so the next issue can focus on user-visible state instead of platform churn."
+          body="React Router and TanStack Query are already in place so the remaining workspace slices can focus on user-visible state instead of platform churn."
         >
           <ul className="contract-list">
             {apiContracts.map((contract) => (

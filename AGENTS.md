@@ -22,6 +22,11 @@ Source Lens is a local-first knowledge workspace for importing private sources a
 - MVP default: one selected source, local import, grounded QA, visible evidence.
 - Do not hardcode vector dimensionality.
 
+## Transitional Note
+
+- Angular is not part of the active repo direction.
+- Legacy SQLite and Qdrant adapters may still exist in the backend implementation, but they are transitional internals and should not drive new design or tracking decisions.
+
 ## How To Work
 
 - Start non-trivial work with a short plan and explicit acceptance checks.

@@ -4,6 +4,7 @@ Source Lens is a local-first knowledge workspace for importing private sources a
 
 ## Source Of Truth
 
+- `docs/afk-handoff.md` is the fastest pickup guide for a fresh session or new machine.
 - `CONTEXT.md` defines the current architecture direction, stack, and domain vocabulary.
 - `plan.md` defines the active MVP milestone, implementation rules, and done criteria.
 - `README.md` defines product positioning and user-facing framing.

@@ -24,10 +24,11 @@ Source Lens is a local-first knowledge workspace for importing private sources a
 ## Current Architectural Direction
 
 - Backend runtime: Python
-- Frontend: Angular + TypeScript
+- Frontend: React + TypeScript
+- Frontend toolchain: Vite
 - Model runtime: Ollama
 - Storage direction: PostgreSQL + pgvector
-- Metadata and retrieval data should remain isolated behind repository and vector store boundaries
+- Metadata and retrieval concerns should remain isolated behind repository and vector store boundaries
 - Vector dimensionality must not be hardcoded
 
 ## Working Rules

@@ -115,13 +115,12 @@ Ask things like:
 
 ## MVP scope
 
-### Implemented in the current MVP slice
+### Implemented or actively targeted in the current MVP slice
 - backend scaffold with deterministic local commands
 - API health endpoint
 - repo-local runtime config and data bootstrap
-- SQLite metadata repositories for sources and import jobs
+- PostgreSQL + pgvector storage direction behind stable boundaries
 - Ollama chat and embedding adapters
-- Qdrant local vector storage bootstrap with dimension checks
 - deterministic local dependency proof commands for the pinned local model and storage stack
 - local file import API with request-time snapshotting and queued background jobs
 - import status polling through `GET /import-jobs/{job_id}`
@@ -130,11 +129,9 @@ Ask things like:
 - source list and source detail endpoints
 - embedding-based retrieval for one selected source
 - grounded answer generation
-- answer + evidence snippets
-- Angular workspace wired to the backend source list
-- single-source selection in the Angular UI
-- grounded ask flow wired to the backend
-- evidence snippet rendering in the Angular UI
+- answer plus evidence snippets
+- React workspace aligned to the backend source list and ask flow
+- single-source selection in the UI
 - handled loading, empty, error, and source-not-ready ask states
 
 ### Verified now
@@ -142,7 +139,7 @@ Ask things like:
 - separate opt-in live Ollama smoke proof through `.\tools\live-deps.ps1`
 
 ### Next in the MVP roadmap
-- refine the wired workspace UX without widening beyond one selected source
+- finish the React MVP workspace slices without widening beyond one selected source
 - keep deeper retrieval, ranking, and multi-source work deferred until after the MVP slice hardens
 
 ### Intentionally not overbuilt yet
@@ -152,28 +149,28 @@ Ask things like:
 - multi-source orchestration
 - complex ranking pipelines
 
-The MVP is a **sharp vertical slice**: one selected source, one clean retrieval flow, one clear grounded-answer experience.
+The MVP is a sharp vertical slice: one selected source, one clean retrieval flow, one clear grounded-answer experience.
 
 ---
 
 ## Architecture at a glance
 
 ```text
-Angular workspace
-   ↓
+React workspace
+   |
 Python API
- ├─ source catalog
- ├─ local import pipeline
- │   ├─ snapshot source
- │   ├─ parse
- │   ├─ chunk
- │   ├─ embed via Ollama
- │   └─ store vectors + metadata
- ├─ retrieval service
- └─ answer service
-     ├─ embed the question
-     ├─ retrieve top chunks
-     └─ generate grounded answer via Ollama
+ |- source catalog
+ |- local import pipeline
+ |  |- snapshot source
+ |  |- parse
+ |  |- chunk
+ |  |- embed via Ollama
+ |  |- store metadata + retrieval data
+ |- retrieval service
+ |- answer service
+    |- embed the question
+    |- retrieve top chunks
+    |- generate grounded answer via Ollama
 ```
 
 ---
@@ -182,21 +179,22 @@ Python API
 
 ### Locked for MVP
 - **Backend:** Python
+- **Frontend:** React + TypeScript
+- **Frontend toolchain:** Vite
 - **Local model runtime:** Ollama
-- **Vector store:** Qdrant local mode
-- **Metadata store:** SQLite via a swappable repository / adapter layer
-- **Workflow:** import → chunk → embed → retrieve → answer
-- **Current milestone:** Angular wiring for the existing backend slice
+- **Storage direction:** PostgreSQL + pgvector
+- **Workflow:** import -> chunk -> embed -> retrieve -> answer
+- **Current milestone:** React MVP workspace slices on top of the current backend seam
 - **Default query scope:** exactly one selected source at a time
 
 ### Why this stack
-Because it gets to a real end-to-end prototype fast, stays local-first, and keeps the path open for more controlled enterprise deployment later.
+Because it keeps the product local-first, supports a clean frontend foundation, and leaves room for production-shaped storage without widening the MVP.
 
 ---
 
 ## Local workspace scaffold
 
-The repo now includes the backend slice plus a wired Angular workspace for the MVP ask flow.
+The repo includes the Python backend plus a `frontend/` workspace for the MVP UI.
 
 Windows-first commands from the repo root:
 
@@ -208,7 +206,7 @@ Windows-first commands from the repo root:
 - `.\tools\eval.ps1`
 - `.\tools\live-deps.ps1`
 
-Frontend workspace commands inside `frontend\`:
+Frontend workspace commands inside `frontend\` are currently transitional:
 
 - `npm start`
 - `npm run test:ci`
@@ -224,11 +222,11 @@ Current runtime surface:
 - `GET /sources/{source_id}`
 - `POST /sources/{source_id}/ask`
 
-`setup.ps1` bootstraps the repo-local backend helper environment under `.tools\bootstrap` and installs frontend dependencies with `npm ci`.
+`setup.ps1` bootstraps the repo-local backend helper environment under `.tools\bootstrap` and installs frontend dependencies.
 
-`dev.ps1` starts the API on `http://127.0.0.1:8000`. Run `npm start` inside `frontend\` to serve the Angular workspace through the `/api` proxy on `http://localhost:4200`.
+`dev.ps1` starts the API on `http://127.0.0.1:8000`. The frontend workspace should run locally against that backend seam during MVP development.
 
-`test.ps1`, `lint.ps1`, and `typecheck.ps1` now cover both backend and frontend checks. `eval.ps1` remains the deterministic backend MVP eval gate. `live-deps.ps1` is the separate opt-in Ollama dependency proof command.
+`test.ps1`, `lint.ps1`, and `typecheck.ps1` cover backend and frontend checks. `eval.ps1` is the deterministic MVP eval gate. `live-deps.ps1` is the separate opt-in Ollama dependency proof command.
 
 ---
 
@@ -262,7 +260,7 @@ These features are not all in the MVP, but they are highly aligned with the prod
 
 - **Private by design** instead of privacy as an afterthought
 - **Grounded answers** instead of generic chatbot theater
-- **Evidence-first UX** instead of “just trust the model”
+- **Evidence-first UX** instead of "just trust the model"
 - **Reusable retrieval layer** instead of one-shot document chat
 - **A path toward enterprise-safe AI workflows** without making the MVP feel heavy
 
@@ -271,20 +269,20 @@ These features are not all in the MVP, but they are highly aligned with the prod
 ## Example workflow
 
 ```text
-Import source → Parse text → Split into chunks → Create embeddings → Store vectors → Ask question → Retrieve evidence → Generate grounded answer
+Import source -> Parse text -> Split into chunks -> Create embeddings -> Store retrieval data -> Ask question -> Retrieve evidence -> Generate grounded answer
 ```
 
 ---
 
 ## Roadmap direction
 
-These are product-facing directions after the current wired MVP slice.
+These are product-facing directions after the current MVP slice.
 
 - [ ] stricter grounding mode
 - [ ] retrieval tuning
 - [ ] source memory cards
 - [ ] multi-perspective review
-- [ ] GitHub/repository-oriented import path
+- [ ] GitHub or repository-oriented import path
 - [ ] import-time secret scan
 - [ ] source relationship view
 
@@ -294,7 +292,7 @@ These are product-facing directions after the current wired MVP slice.
 
 > Add the first real screenshot or GIF as soon as the vertical slice works.
 >
-> Best current demo: **source list + selected source + grounded answer + evidence snippets**.
+> Best current demo: source list, selected source, grounded answer, and evidence snippets.
 
 ```html
 <p align="center">
@@ -308,7 +306,7 @@ These are product-facing directions after the current wired MVP slice.
 
 **Source Lens is a local-first AI knowledge workspace for importing, indexing, and exploring private sources with grounded answers and visible evidence.**
 
-It starts small on purpose, but it is built to grow into something much more powerful than “chat with a file.”
+It starts small on purpose, but it is built to grow into something much more powerful than "chat with a file."
 
 ---
 

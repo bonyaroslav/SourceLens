@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { SourceList } from '../components/SourceList';
 import { useSources } from '../hooks/useSources';
+import { AskPanel } from '../components/AskPanel';
 
 function SourceDetail({ sourceId }: { sourceId: string }) {
   const { data: sources } = useSources();
@@ -28,9 +29,10 @@ function SourceDetail({ sourceId }: { sourceId: string }) {
           )}
         </dl>
       )}
-      <div className="workspace-content__ask-placeholder">
-        Ask flow coming in issue #19
-      </div>
+      <AskPanel
+        sourceId={sourceId}
+        isReady={source?.import_status === 'completed'}
+      />
     </div>
   );
 }
